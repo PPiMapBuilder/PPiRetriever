@@ -3,15 +3,15 @@ use warnings;        # Avertissement des messages d'erreurs
 use strict;          # Vérification des déclarations
 use Carp;            # Utile pour émettre certains avertissements
 
-my $nb = 0;    #variable de classe
 
 #constructeur
 sub new {
- my ( $classe, $A, $B, $organism, $pubmed, $sys_exp) = @_;    #on passe les données au constructeur
+ my ( $classe, $A, $B, $organism, $database, $pubmed, $sys_exp) = @_;    #on passe les données au constructeur
  my $this = {
   "A" => [],
   "B" => [],
   "organism" => $organism,
+  "database" => $database,
   "pubmed" => [],
   "sys_exp" => []
  };
@@ -22,7 +22,7 @@ sub new {
  @{$this->{sys_exp}} = @{$sys_exp};
  
  bless( $this, $classe );      #lie la référence à la classe
- $nb++;
+
  return $this;		   #on retourne la référence consacrée
 }
 
@@ -45,6 +45,7 @@ sub toString {
 	print "Interaction A : ".@{$this->{A}}[0]."  ".@{$this->{A}}[1]."\n";
 	print "Interaction B : ".@{$this->{B}}[0]."  ".@{$this->{B}}[1]."\n";
 	print "Organism : ".$this->{organism}."\n";
+	print "Database : ".$this->{database}."\n";
 	print "Pubmed : ";
 	foreach (sort @{$this->{pubmed}}) {print "$_\t";}
 	print "\nExperimental system : ";
@@ -52,7 +53,6 @@ sub toString {
 	print "\n";
 }
 	
-sub DESTROY {};
 
 1;    #Attention ! Obligatoire lors de la création d'un module !
 
