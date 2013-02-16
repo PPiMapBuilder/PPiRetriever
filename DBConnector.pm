@@ -33,6 +33,7 @@ sub new() {
 	);
 
 	bless( $this, $class );
+	
 	return $this;
 }
 
