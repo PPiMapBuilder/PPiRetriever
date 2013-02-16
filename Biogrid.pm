@@ -142,5 +142,62 @@ sub parse {
 
 	}
 }
+
+
+sub download {
+	my ($this) = @_;
+	
+	my $saveFile = "BIOGRID-ALL-LATEST.tab2.zip";
+	my $url = "http://thebiogrid.org/downloads/archives/Latest%20Release/".$saveFile;
+	
+	#working folder (with the name of current DB)
+	my $folder = $this->setDownloadFolder(uc(__PACKAGE__));
+
+	#if unable to create folder
+	no warnings 'numeric';
+	return -3 if(int($folder) == -1); #Error code -3: unable to get/create folder
+	use warnings 'numeric';
+	
+	#Preparing the user agent for downloading
+	my $ua = LWP::UserAgent->new;
+	$ua->agent('Mozilla/5.5 (compatible; MSIE 5.5; Windows NT 5.1)');
+	
+	#Downloading database
+	print("Downloading ".__PACKAGE__." data...\n");
+	my $savePath = $folder . $saveFile;
+
+	#If download file already exists => saving the old one as old.
+	my $oldFile = $folder."old-".$saveFile;
+	move($savePath, $oldFile) if (-e $savePath);
+
+	#Downloading the date file in DIP.txt.gz
+	$ua->show_progress('true value');
+	$ua->get($url, ':content_file' => $savePath );
+	print("Done!\n");
+	
+	#Compare new and old file (if exists)
+	if(-e $oldFile) {
+		if($this->md5CheckFile($savePath, $oldFile)) {
+			return -1; # No need for update old and new are the same
+		}
+	}
+	
+	#Uncompressing file
+	my $fileUncompressed = $this->fileUncompressing($savePath);
+		
+	#Uncompressing failed
+	no warnings 'numeric';
+	return -4 if ($fileUncompressed == -1);
+	use warnings 'numeric';
+	
+	#Make sure the file was correctly downloaded
+	if ( -e $fileUncompressed ) {
+		return $fileUncompressed;
+	} else {
+		print("Download failed.\n");
+		return -2;    #No data recieved from DIP
+	}
+}
+
 1;
 
