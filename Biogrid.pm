@@ -59,9 +59,9 @@ sub parse {
 			next;
 		}
 
-		#if ($i == 10) {
-		#	exit;
-		#}
+		if ($i == 10) {
+			last;
+		}
 
 		my $intA      = undef;
 		my $uniprot_A = undef;

@@ -37,7 +37,7 @@ sub getInteraction {
 
 sub afficheTest {
 	my ($this) = @_;
-	print @{$this->{ArrayInteraction}}[0]->Interaction::toString();
+	print @{$this->{ArrayInteraction}}[0]->toString();
 }
 
 
