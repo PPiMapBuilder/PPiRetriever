@@ -2,7 +2,7 @@ package DBpublic;    # Nom du package, de notre classe
 use warnings;        # Avertissement des messages d'erreurs
 use strict;          # Vérification des déclarations
 use Carp;            # Utile pour émettre certains avertissements
-use digest::MD5;
+use Digest::MD5;
 use IO::Uncompress::AnyUncompress qw(anyuncompress $AnyUncompressError) ;
 
 use Interaction;
