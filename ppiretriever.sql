@@ -8,7 +8,6 @@ drop table interaction_data cascade;
 drop table source_database cascade;
 drop table publication cascade;
 
-
 -- database creation
 create table if not exists protein (
 	id serial primary key,
