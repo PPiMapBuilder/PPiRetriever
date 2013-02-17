@@ -2,5 +2,7 @@
 .settings/
 DIP/
 BIOGRID/
-TEST.pl
 test_DBConnector.pl
+BIOGRID.txt
+gene_name_to_uniprot_database.txt
+test.pl
