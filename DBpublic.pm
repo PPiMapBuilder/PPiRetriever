@@ -4,10 +4,9 @@ use strict;          # Vérification des déclarations
 use Carp;            # Utile pour émettre certains avertissements
 
 use File::Copy;
-use digest::MD5;
 use Data::Dumper;
+use Digest::MD5;
 use IO::Uncompress::AnyUncompress qw(anyuncompress $AnyUncompressError) ;
-
 use HTTP::Cookies;
 use LWP::UserAgent;
 
@@ -43,7 +42,7 @@ sub getInteraction {
 
 sub afficheTest {
 	my ($this) = @_;
-	print @{$this->{ArrayInteraction}}[0]->Interaction::toString();
+	print @{$this->{ArrayInteraction}}[0]->toString();
 }
 
 

@@ -28,7 +28,7 @@ sub parse {
 	my %hash_orga_tax = ( # Hash to easily retrieve the correspondance between the taxonomy id and the seven reference organisms
 		'3702'  => 'Arabidopsis thaliana',
 		'6239'  => 'Caenorhabditis elegans',
-		'7227'  => 'Drosophilia Melanogaster',
+		'7227'  => 'Drosophilia melanogaster',
 		'9606'  => 'Homo sapiens',
 		'10090' => 'Mus musculus',
 		'4932'  => 'Saccharomyces cerevisiae',
@@ -60,9 +60,9 @@ sub parse {
 			next;
 		}
 
-		#if ($i == 10) {
-		#	exit;
-		#}
+		if ($i == 10) {
+			last;
+		}
 
 		my $intA      = undef;
 		my $uniprot_A = undef;

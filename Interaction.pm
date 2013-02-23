@@ -57,4 +57,5 @@ sub toString {
 1;    #Attention ! Obligatoire lors de la création d'un module !
 
 
-__END__           # Le compilateur ne lira pas les lignes après elle
+__END__
+Le compilateur ne lira pas les lignes après elle
