@@ -2,8 +2,14 @@ package DBpublic;    # Nom du package, de notre classe
 use warnings;        # Avertissement des messages d'erreurs
 use strict;          # Vérification des déclarations
 use Carp;            # Utile pour émettre certains avertissements
+
+use File::Copy;
 use digest::MD5;
+use Data::Dumper;
 use IO::Uncompress::AnyUncompress qw(anyuncompress $AnyUncompressError) ;
+
+use HTTP::Cookies;
+use LWP::UserAgent;
 
 use Interaction;
 
@@ -57,34 +63,43 @@ sub md5CheckFile ($$) {
 
 
 #Uncompressing file given in parameter
-sub fileUncompressing ($) {
+#@return	=> 	 1	if succeded
+#				-1	if failed
+sub fileUncompressing ($$) {
 	my ($this) = @_;
-	my $pathCompressedFile = $_[1];
-	my $pathUncompressedFile = "./";
-	
-	#Getting file name, folder and extension of file path
-	my @pathInfo = $this->extractPathInfo($pathCompressedFile);
-	
-	#File path format unrecognized
 	no warnings 'numeric';
-	if($pathInfo[0]  == -1) {
-		print "Can't uncompress file!\n";
-		return -1;
+	
+	#Function arguments
+	my $pathCompressedFile = $_[1];
+	my $pathUncompressedFile = $_[2];
+	
+	#Extracting folder path from $pathCompressedFile
+	my @pathInfo = $this->extractPathInfo($pathCompressedFile);
+	my $folder = $pathInfo[0];
+	return -1 if($folder == -1);
+	
+	#Uncompressing $pathCompressedFile in $folder
+	my $ae = Archive::Extract->new(archive => $pathCompressedFile);
+	my $ok = $ae->extract(to => $folder);
+	
+	#Uncompressing failed
+	return -1 if(!$ok);
+	
+	#Getting the .txt file extracted
+	my @files = @{($ae->files)};
+	my $uncompressedFile;
+	foreach (@files) {
+		if(/.*\.txt$/) {
+			$uncompressedFile = $folder.$_;
+		} else {
+			unlink($folder.$_);
+		}
 	}
 	
-	#Setting the folder and filename for uncompressing
-	my $file = $pathInfo[0].$pathInfo[1];
-	my $extension = $pathInfo[2];
-	$extension =~ s/(\.tar|\.gz|\.zip)//g;
-	$pathUncompressedFile = $file.$extension;
+	#Renaming the uncompressed file as $pathUncompressedFile
+	move $uncompressedFile, $pathUncompressedFile or return -1;
 	
-	#Uncompressing file	
-	if(anyuncompress $pathCompressedFile => $pathUncompressedFile) {
-		return $pathUncompressedFile;
-	} else {
-		print "Uncompressing failed: $AnyUncompressError\n";
-		return -1;
-	}
+	return 1;
 }
 
 
@@ -142,12 +157,27 @@ sub checkVersion ($$) {
 sub extractPathInfo ($) {
 	my $path = $_[1];
 	
-	if($path =~ /^\/?(.+\/)*(\w+|)((\.\w+)*)$/) { 
+	if($path =~ /^\/?(.+\/)*([0-9a-zA-Z_-]+)((\.\w+)*)$/) { 
 		return ($1, $2, $3);
 	} else {
 		print "Invalid file name. "; 
 		return -1;
 	}
+}
+
+#Create and setup the user agent
+sub setUserAgent {
+	my $cookieFile = $_[1];
+	
+	my $ua = LWP::UserAgent->new;
+	$ua->agent('Mozilla/5.5 (compatible; MSIE 5.5; Windows NT 5.1)');
+	
+	if($cookieFile) {
+		my $cookie = HTTP::Cookies->new( file => $cookieFile, autosave => 1 );
+		$ua->cookie_jar($cookie);
+		return $ua, $cookie;
+	}
+	return $ua;
 }
 
 1;

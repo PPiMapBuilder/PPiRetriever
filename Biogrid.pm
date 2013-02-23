@@ -6,6 +6,7 @@ use Carp;        # Utile pour émettre certains avertissements
 
 use DBpublic;
 use Interaction;
+use File::Copy;
 use LWP::Simple;
 
 $SIG{INT} = \&catch_ctrlc;
@@ -146,23 +147,30 @@ sub parse {
 }
 
 
+#Download and uncompress Dip data file
+#	@return => the file path to .txt file
+#			=> the sucess/failure code
+#				 1  Sucess: New version found and downloaded			
+#				-1  Sucess: No new version, no need for update
+#				-2  Failure: Connexion to server failed
+#				-3	Failure: Can't create/find download folder
+#				-4	Failure: Uncompressing failed
 sub download {
 	my ($this) = @_;
-	
-	my $saveFile = "BIOGRID-ALL-LATEST.tab2.zip";
-	my $url = "http://thebiogrid.org/downloads/archives/Latest%20Release/".$saveFile;
+	no warnings 'numeric';
 	
 	#working folder (with the name of current DB)
 	my $folder = $this->setDownloadFolder(uc(__PACKAGE__));
 
-	#if unable to create folder
-	no warnings 'numeric';
-	return -3 if(int($folder) == -1); #Error code -3: unable to get/create folder
-	use warnings 'numeric';
+	#Setting folder failed
+	return ("", -3) if(int($folder) == -1); #Error code -3: unable to get/create folder
+	
+	my $saveFile = "BIOGRID-ALL-LATEST.tab2.zip";
+	my $url = "http://thebiogrid.org/downloads/archives/Latest%20Release/".$saveFile;
+	my $fileUncompressed = $folder."BIOGRID.txt";
 	
 	#Preparing the user agent for downloading
-	my $ua = LWP::UserAgent->new;
-	$ua->agent('Mozilla/5.5 (compatible; MSIE 5.5; Windows NT 5.1)');
+	my $ua = $this->setUserAgent();
 	
 	#Downloading database
 	print("Downloading ".__PACKAGE__." data...\n");
@@ -172,32 +180,38 @@ sub download {
 	my $oldFile = $folder."old-".$saveFile;
 	move($savePath, $oldFile) if (-e $savePath);
 
-	#Downloading the date file in DIP.txt.gz
+	#Downloading the biogrid data (with )
 	$ua->show_progress('true value');
-	$ua->get($url, ':content_file' => $savePath );
-	print("Done!\n");
+	my $res = $ua->get($url, ':content_file' => $savePath );
+	
+	unless($res->is_success) {
+		return ("", -2); #Connection failed
+	}
 	
 	#Compare new and old file (if exists)
 	if(-e $oldFile) {
 		if($this->md5CheckFile($savePath, $oldFile)) {
-			return -1; # No need for update old and new are the same
+			#Deleting old file since old and new are the same
+			unlink($oldFile);
+			return ($fileUncompressed, -1); # No need for update old and new are the same
 		}
 	}
 	
 	#Uncompressing file
-	my $fileUncompressed = $this->fileUncompressing($savePath);
+	my $uncompressingResult = $this->fileUncompressing($savePath, $fileUncompressed);
 		
 	#Uncompressing failed
-	no warnings 'numeric';
-	return -4 if ($fileUncompressed == -1);
-	use warnings 'numeric';
+	return ("", -4) if ($uncompressingResult == -1);
+	
+	print("Done! File downloaded and uncompressed!\n");
 	
 	#Make sure the file was correctly downloaded
 	if ( -e $fileUncompressed ) {
-		return $fileUncompressed;
+		return ($fileUncompressed, 1);
 	} else {
 		print("Download failed.\n");
-		return -2;    #No data recieved from DIP
+		#No data recieved from DIP
+		return ("", -2);
 	}
 }
 
