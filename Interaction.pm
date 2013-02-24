@@ -1,4 +1,5 @@
 package Interaction;    # Nom du package, de notre classe
+
 use warnings;           # Avertissement des messages d'erreurs
 use strict;             # Vérification des déclarations
 use Carp;               # Utile pour émettre certains avertissements
@@ -6,7 +7,7 @@ use Carp;               # Utile pour émettre certains avertissements
 #constructeur
 sub new {
 	my ( $classe, $A, $B, $organism, $database, $pubmed, $sys_exp ) =
-	  @_;               #on passe les données au constructeur
+	  @_;
 	my $this = {
 		"A"        => [],
 		"B"        => [],
