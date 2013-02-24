@@ -2,7 +2,7 @@ use warnings;
 use DBConnector;
 use Data::Dumper;
 
-$dbc = DBConnector->new( 'localhost', '5432', 'keuv', 'keuv', 'sugar*' );
+$dbc = DBConnector->new( 'localhost', '5432', '', '', '' ) or die "Cannot connect to database";
 
 $dbc->dbg_insert_random(3);
 

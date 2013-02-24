@@ -36,6 +36,18 @@ sub new() {
 	return $this;
 }
 
+sub insert() {
+	my ( $this, $PPiGrp ) = @_;
+
+	# preparer toutes les requetes pour le groupe de PPi
+
+	foreach my $PPi ( @{$PPiGrp} ) {
+		                                 # executer les statements
+	}
+
+	# commit le tout
+}
+
 sub disconnect () {
 	my ($this) = shift;
 	eval { $this->{'dbh'}->disconnect() };
@@ -91,4 +103,3 @@ sub generate_random_string {
 __END__
 
 commentaires et documentation
-
