@@ -1,13 +1,11 @@
-package Interaction;    # Nom du package, de notre classe
+package Interaction;
 
-use warnings;           # Avertissement des messages d'erreurs
-use strict;             # Vérification des déclarations
-use Carp;               # Utile pour émettre certains avertissements
+use warnings;
+use strict;
 
 #constructeur
 sub new {
-	my ( $classe, $A, $B, $organism, $database, $pubmed, $sys_exp ) =
-	  @_;
+	my ( $classe, $A, $B, $organism, $database, $pubmed, $sys_exp ) = @_;
 	my $this = {
 		"A"        => [],
 		"B"        => [],
@@ -27,45 +25,58 @@ sub new {
 	return $this;               #on retourne la référence consacrée
 }
 
-sub afficheA {
+sub getUniprotA {
 	my ($this) = @_;
-	foreach my $sub ( @{ $this->{A} } ) {
-		print $sub. "\t";
-	}
-	print "\n";
+	return @{ $this->{A} }[0];
 }
 
-sub organism {
+sub getGeneNameA {
 	my ($this) = @_;
-	return $this->{organism};
+	return @{ $this->{A} }[1];
+}
+
+sub getUniprotB {
+	my ($this) = @_;
+	return @{ $this->{B} }[0];
+}
+
+sub getGeneNameB {
+	my ($this) = @_;
+	return @{ $this->{B} }[1];
 }
 
 sub toString {
 	my ($this) = @_;
+
 	print "Interactor A:\n"
 	  . " - UniprotID: "
-	  . @{ $this->{A} }[0] . "\n"
-	  . " - Gene name:"
-	  . @{ $this->{A} }[1] . "\n"
-	  . print "Interactor B:\n"
+	  . $this->getUniprotA() . "\n"
+	  . " - Gene name: "
+	  . $this->getGeneNameA() . "\n"
+	  . "Interactor B:\n"
 	  . " - UniprotID: "
-	  . @{ $this->{B} }[1] . "\n"
-	  . " - Gene name:"
-	  . @{ $this->{B} }[1] . "\n"
-	  . print "Organism : "
-	  . $this->{organism} . "\n";
-	print "Database : " . $this->{database} . "\n";
-	print "Pubmed : ";
+	  . $this->getUniprotB() . "\n"
+	  . " - Gene name: "
+	  . $this->getGeneNameB() . "\n"
+	  . "Organism : "
+	  . $this->{organism} . "\n"
+	  . "Database : "
+	  . $this->{database}
+	  . "\n";
+
+	print "Pubmed :\n";
 	print " - $_\n" foreach ( @{ $this->{pubmed} } );
-	print "\nExperimental system : ";
+	print "Experimental system :\n";
 	print " - $_\n" foreach ( @{ $this->{sys_exp} } );
+#	print "-------------------------\n";
+
 }
 
 1;
 
 __END__
 
-Format du toString() :
+toString() format :
 	Interactor A:
 	 - UniprotID: uniprot1
 	 - Gene name: genename1
