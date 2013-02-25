@@ -145,7 +145,7 @@ sub checkVersion ($$) {
 		return -1;    # No update needed
 	} else {
 		seek(VERSION, 0, 0);
-		print VERSION $1;    #Saving the new date to version.txt
+		print VERSION $newVersion;    #Saving the new date to version.txt
 	}
 	
 	close(VERSION);

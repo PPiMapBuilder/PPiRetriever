@@ -32,7 +32,7 @@ sub parse {
 #	@return => the file path to .txt file
 #			=> the sucess/failure code
 #				 1  Sucess: New version found and downloaded			
-#				-1  Sucess: No new version, no need for update
+#				-1  Sucess: No new version, no need for update (but you still have the path to current version as first return value)
 #				-2  Failure: Connexion to server failed
 #				-3	Failure: Can't create/find download folder
 #				-4	Failure: Uncompressing failed
@@ -98,7 +98,7 @@ sub download {
 		my $oldFile = $folder."old-".$saveFile;
 		move($savePath, $oldFile) if (-e $savePath);
 
-		#Downloading the date file in DIP.txt.gz
+		#Downloading the latest version in DIP.txt.gz
 		$ua->show_progress('true value');
 		my $res = $ua->get( $dataFile, ':content_file' => $savePath );
 		
