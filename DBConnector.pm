@@ -2,9 +2,9 @@ package DBConnector;
 
 use strict;
 use warnings;
+use Interaction;
 use DBI;
 
-use Data::Dumper;
 
 sub new() {
 	my ( $class, $host, $port, $dbname, $username, $password ) = @_;
@@ -252,10 +252,6 @@ sub dbg_select() {
 	my $hash_ref = $sth->fetchall_hashref('tax_id');
 
 	return $hash_ref;
-}
-
-sub p($) {
-	print Dumper @_;
 }
 
 1;
