@@ -232,8 +232,6 @@ sub insert() {
 		push(@addedPPiId, $idInteraction);
 	}
 
-	# TODO définir ce qui doit être retrouner
-	return(@addedPPiId);
 }
 
 
