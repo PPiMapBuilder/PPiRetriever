@@ -20,9 +20,8 @@ sub new {
 	@{ $this->{pubmed} }  = @{$pubmed};
 	@{ $this->{sys_exp} } = @{$sys_exp};
 
-	bless( $this, $classe );    #lie la référence à la classe
-
-	return $this;               #on retourne la référence consacrée
+	bless( $this, $classe );            #Linking the reference to the class
+	return $this;                       #Returning the blessed reference
 }
 
 sub getUniprotA {

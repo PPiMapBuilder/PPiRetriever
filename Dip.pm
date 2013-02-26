@@ -1,8 +1,8 @@
 package Dip;
 
-use warnings;    # Avertissement des messages d'erreurs
-use strict;      # Vérification des déclarations
-use Carp;        # Utile pour émettre certains avertissements
+use warnings;    #Activate all warnings 
+use strict;      #Variable declaration control
+use Carp;        #Additionnal user warnings
 
 use DBpublic;
 use Interaction;
@@ -16,12 +16,12 @@ $SIG{INT} = \&catch_ctrlc;
 our @ISA = ("DBpublic");
 
 sub new {
-	my ($classe) = @_;                  #on passe les données au constructeur
+	my ($classe) = @_;                  #Sending arguments to constructor
 	my $this = $classe->SUPER::new();
-	bless( $this, $classe );            #lie la référence à la classe
-	return $this;                       #on retourne la référence consacrée
-
+	bless( $this, $classe );            #Linking the reference to the class
+	return $this;                       #Returning the blessed reference
 }
+
 
 sub parse {
 	
@@ -140,5 +140,6 @@ sub download {
 		return ("", -2);    #No data recieved from DIP
 	}
 }
+
 1;
 

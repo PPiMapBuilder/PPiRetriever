@@ -1,7 +1,7 @@
-package DBpublic;    # Nom du package, de notre classe
-use warnings;        # Avertissement des messages d'erreurs
-use strict;          # Vérification des déclarations
-use Carp;            # Utile pour émettre certains avertissements
+package DBpublic;   #Name for the package and for the class
+use warnings;    	#Activate all warnings 
+use strict;      	#Variable declaration control
+use Carp;        	#Additionnal user warnings
 
 use File::Copy;
 use Data::Dumper;
@@ -13,19 +13,19 @@ use Archive::Extract;
 
 use Interaction;
 
-#Va donc contenir un tableau de 10 objets d'interaction
-#Fonction de remplissage lors du parsing
-#parse(), rempliTab(), envoiKeuv() et reset()
+#Will contain an array of 10 interaction objects
+#Filling funcitons during data parsing
+#parse(), fillTab(), sendKeuv() and reset()
 
 
 sub new {
-my ( $classe ) = @_;    #on passe les données au constructeur
- my $this = {
-  "ArrayInteraction" => []
- };
+	my ( $classe ) = @_;		#Sending arguments to constructor
+	my $this = {
+ 		"ArrayInteraction" => []
+	};
 
- bless( $this, $classe );      #lie la référence à la classe
- return $this;		   #on retourne la référence consacrée
+	bless( $this, $classe );	#Linking the reference to the class
+	return $this;               #Returning the blessed reference
 }
 
 
@@ -96,15 +96,14 @@ sub fileUncompressing ($$) {
 		}
 	}
 	
-	
 	my $uncompressedFile = "";
 	if(scalar(@uncompressedFiles) > 1) {
 		foreach(@uncompressedFiles) {
 			print $_."\n";
-			if(/$pathUncompressedFile/i) { 			#If this file has the same name as the one in $pathUncompressedFile (case insentitive)
-				$uncompressedFile = $_; 			#Saving this file
+			if(/$pathUncompressedFile/i) { 		#If this file has the same name as the one in $pathUncompressedFile (case insentitive)
+				$uncompressedFile = $_; 		#Saving this file
 			} else {
-				unlink($_);							#Deleting others...
+				unlink($_);						#Deleting others...
 			}
 		}
 		
