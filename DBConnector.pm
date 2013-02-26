@@ -6,7 +6,6 @@ use DBI;
 
 use Data::Dumper;
 
-
 sub new() {
 	my ( $class, $host, $port, $dbname, $username, $password ) = @_;
 
@@ -39,36 +38,45 @@ sub new() {
 	return $this;
 }
 
+sub _commit() {
+	my ($this) = @_;
+	$this->{'_dbh'}->commit();
+}
 
+sub _rollback() {
+	my ($this) = @_;
+	$this->{'_dbh'}->_rollback();
+}
 
-
+sub disconnect () {
+	my ($this) = shift;
+	eval { $this->{'dbh'}->disconnect() };
+}
 
 sub insert() {
-	
 # Insère une liste de PPI dans la base de données
-# VERSION 1
 #
-# TODO : gerer les exceptions avec des blocs eval
-# TODO : récuperer les ID si deja existants (POSTGRESQL : INSERT ... RETURNING id)
-# TODO : inserer dans les tables de relations SI tout à été inséré ou récupéré correctement
+# TODO : définir ce qui doit être retourné
 #
 #
 # DESCRIPTION
 # On insère les données "dures" dans un premier temps, à savoir:
+# notation:	- <table> (<champ1>, <champ2>, <etc>)
+#
 #	- protein (uniprot_id, gene_name)
 #	- source_database (name)
 #	- publication (pubmed_id)
-# On récupère alors les identifiants des données nouvellement insérées, ou les id existants le cas échéant.
+# On récupère alors les identifiants des données nouvellement insérées, ou les ID existants le cas échéant.
 #
 # On récupère ensuite les données "fixes", à savoir
-# 	- organism(tax_id)
-# 	- experimental_system(name)
+# 	- organism (tax_id)
+# 	- experimental_system (name)
 #
 # Il nous reste à remplir DANS CET ORDRE (!) les tables de relations avec les données, à savoir
-#	- interaction_data
-#	- interaction
-#	( - homogolgy ) -> pour plus tard
-#
+#	- interaction_data (db_source_name, pubmed_id, organism_tax_id,experimental_system)
+#	- interaction (protein_id1, protein_id2, interaction_data_id)
+#  (- homogolgy) -> pour plus tard
+
 
 # Petit rappel sur l'organisation des requêtes
 # 	- on prépare une requete, avec "?" pour symboliser les variables
@@ -76,116 +84,158 @@ sub insert() {
 #	- on commit le tout quand ça nous arrange
 
 	my ( $this, $PPiGrp ) = @_;
+	
+	my @addedPPiId = ();
 
-	# preparer toutes les requetes (statements) pour le groupe de PPi
-
-# INSERT statements
-	my $sth_insert_protein = $this->{'_dbh'}->prepare("INSERT INTO protein(uniprot_id, gene_name) VALUES (?, ?)");
-	my $sth_insert_publication = $this->{'_dbh'}->prepare("INSERT INTO publication(pubmed_id) VALUES (?)");
-	my $sth_insert_exp_system = $this->{'_dbh'}->prepare("INSERT INTO experimental_system(name) VALUES (?)");
-	my $sth_insert_src_db = $this->{'_dbh'}->prepare("INSERT INTO source_database(name) VALUES (?)");
-	my $sth_insert_organism = $this->{'_dbh'}->prepare("INSERT INTO organism(tax_id) VALUES (?)");
+#--- preparer toutes les requetes (statements) pour le groupe de PPi ---#
+	# INSERT statements
+	my $sth_insert_protein = $this->{'_dbh'}->prepare("INSERT INTO protein(uniprot_id, gene_name) VALUES (?, ?) RETURNING id");
+	my $sth_insert_publication = $this->{'_dbh'}->prepare("INSERT INTO publication(pubmed_id) VALUES (?) RETURNING pubmed_id");
+	my $sth_insert_exp_system = $this->{'_dbh'}->prepare("INSERT INTO experimental_system(name) VALUES (?) RETURNING name");
+	my $sth_insert_src_db = $this->{'_dbh'}->prepare("INSERT INTO source_database(name) VALUES (?) RETURNING name");
+	my $sth_insert_organism = $this->{'_dbh'}->prepare("INSERT INTO organism(tax_id) VALUES (?) RETURNING tax_id");
+	my $sth_insert_interaction_data = $this->{'_dbh'}->prepare("INSERT INTO interaction_data(db_source_name, pubmed_id, organism_tax_id,experimental_system) VALUES (?,?,?,?) RETURNING id");
+	my $sth_insert_interaction = $this->{'_dbh'}->prepare("INSERT INTO interaction(protein_id1, protein_id2, interaction_data_id) VALUES (?,?,?) RETURNING id");
 #	my $sth_insert_homology = $this->{'_dbh'}->prepare("INSERT INTO homology(protein_a, protein_b) VALUES (?, ?)");
-	my $sth_insert_interaction_data = $this->{'_dbh'}->prepare("INSERT INTO interaction_data(db_source_name, pubmed_id, organism_tax_id,experimental_system ) VALUES (?,?,?,?)");
-	my $sth_insert_interaction = $this->{'_dbh'}->prepare("INSERT INTO interaction(protein_id1, protein_id2, interaction_data_id) VALUES (?,?,?)");
 
 
-# SELECT statements
+	# SELECT statements
 	my $sth_select_protein = $this->{'_dbh'}->prepare("SELECT id FROM protein WHERE uniprot_id = ? AND gene_name = ?");
 	my $sth_select_src_db = $this->{'_dbh'}->prepare("SELECT name FROM source_database WHERE name = ?");
 	my $sth_select_publication = $this->{'_dbh'}->prepare("SELECT pubmed_id FROM publication WHERE pubmed_id = ?");
 	my $sth_select_organism_from_tax_id = $this->{'_dbh'}->prepare("SELECT tax_id FROM organism WHERE tax_id = ?");
 	my $sth_select_organism_from_name = $this->{'_dbh'}->prepare("SELECT tax_id FROM organism WHERE name = ?");
 	my $sth_select_exp_sys = $this->{'_dbh'}->prepare("SELECT name FROM experimental_system WHERE name = ?");
+	my $sth_select_interaction_data = $this->{'_dbh'}->prepare("SELECT id FROM interaction_data WHERE db_source_name = ? AND pubmed_id = ? AND organism_tax_id = ? ADN experimental_system = ?");
+	my $sth_select_interaction = $this->{'_dbh'}->prepare("SELECT id FROM interaction WHERE protein_id1 = ? AND protein_id2 = ? AND interaction_data_id = ?");
 	
-# no update needed	
+	# no update statement needed
+
+
 
 	# parcours de la liste de PPi
 	foreach my $PPi ( @{$PPiGrp} ) {
 
 		# les différents ID nécessaires pour peupler les tables de relations
 		# /!\ pubmed et sysExp sont des listes d'ID, il faudra mettre toutes les combinaisons dans interaction_data (et donc plusieurs insertions)
-		my $idInteractorA		= -1;
-		my $idInteractorB		= -1;
-		my $idInteractionData	= -1;
-		my @idPublications		= undef;
-		my @idSysExp			= undef;
-
-
-		# execution des statements
-		
-#--- insertion de l'interacteur A puis récupération de son ID ---#
-		# trying to insert the interactorA
-		eval {			
-			$sth_insert_protein->execute( $PPi->getUniprotA(), $PPi->getGeneNameA());
-			1;
-		} or do {
-			warn "INSERT FAIL A", $PPi->getUniprotA(), " ", $PPi->getGeneNameA() , "\n";
-		};
-			
-		# trying to find the ID for interactor A
-		eval {
-			$sth_select_protein->execute($PPi->getUniprotA(), $PPi->getGeneNameA());
-			($idInteractorA) = $sth_select_protein->fetchrow_array();
-			1;
-		} or do {
-			# if the interactor wasnt inserted and it doesnt exists, there is a big problem!
-			die ("Cannot get any data for ", $PPi->getUniprotA(),"/", $PPi->getGeneNameA());
-		};
-
-		print "Interactor A under ID: ", $idInteractorA, "\n";
-
-
-#--- insertion de l'interacteur B puis récupération de son ID ---#
-		# trying to insert the interactorB
-		eval {
-			$idInteractorB = $sth_insert_protein->execute( $PPi->getUniprotB(), $PPi->getGeneNameB());
-			1;
-		} or do {
-			warn "FAIL INSERT B : ", $PPi->getUniprotB(), " ", $PPi->getGeneNameB() , "\n";			
-		};
-		
-		# trying to find the ID for interactorB		
-		eval {
-			$sth_select_protein->execute($PPi->getUniprotB(), $PPi->getGeneNameB());
-			($idInteractorB) = $sth_select_protein->fetchrow_array();
-			1;
-		} or do {
-			warn "non, tjrs pas envie pour B!\n";
-		};
-		print "Interactor B under ID: ", $idInteractorB, "\n";
-		
-#--- Here we normally have IDs for interactors A & B ---#
-
-
-# TODO récupérer la liste des ID correspondant aux publications concernées
-# Possible de le faire en passant une liste à ->execute() me semble-t-il
-#
-#   		foreach my $pubmedid ( @{ $PPi->{pubmed} } ) {
-#				$sth_insert_publication->execute($pubmedid) ;
-#   		}
-		
-
-# TODO récupérer la liste des ID correspondant aux systemes expérimentaux concernés
-# 
-#			foreach ( @{ $PPi->{sys_exp} } ) {	
-#				$sth_insert_exp_system->execute($_) ;
-#			}
-
-# TODO peupler la table interaction_data puis récuperer l'ID associé
-# TODO peupler la table interaction
+		my $idInteractorA     = undef;
+		my $idInteractorB     = undef;
+		my $idInteraction     = undef;
+		my $idInteractionData = undef;
+		my $db_source		  = $PPi->{database};
+		my $tax_id			  = $PPi->{organism};
+		my @idPublications	  = @{ $PPi->{pubmed} };
+		my @idSysExp		  = @{ $PPi->{sys_exp} };
 	
+	
+		# execution des statements
+	
+		#--- insertion de l'interacteur A et récupération de son ID ---#
+		eval {
+			$sth_insert_protein->execute( $PPi->getUniprotA(), $PPi->getGeneNameA() );
+			$this->_commit();
+			$idInteractorA = (keys $sth_insert_protein->fetchall_hashref('id'))[0];
+			1;
+		} or do {
+			$this->_rollback();
+			$sth_select_protein->execute( $PPi->getUniprotA(), $PPi->getGeneNameA() );
+			($idInteractorA) = $sth_select_protein->fetchrow_array();
+		};
+	
+	
+		#--- insertion de l'interacteur B puis récupération de son ID ---#
+		eval {
+			$sth_insert_protein->execute( $PPi->getUniprotB(), $PPi->getGeneNameB() );
+			$this->_commit();
+			($idInteractorB) = (keys $sth_insert_protein->fetchall_hashref('id'))[0];
+			1;
+		} or do {
+			$this->_rollback();
+			$sth_select_protein->execute( $PPi->getUniprotB(), $PPi->getGeneNameB() );
+			($idInteractorB) = $sth_select_protein->fetchrow_array();
+		};
+	
+	
+	
+		#--- Insertion de la liste des pubmedIDs ---#
+		foreach my $pubmedid ( @{ $PPi->{pubmed} } ) {
+			eval {
+				$sth_insert_publication->execute($pubmedid);		
+				$this->_commit();
+				1;
+			} or do {
+				$this->_rollback();
+			};
+		}
+	
+	
+		#--- Insertion de la liste des systemes experimentaux ---#
+		foreach my $sysexp ( @{ $PPi->{sys_exp} } ) {
+			eval {
+				$sth_insert_publication->execute($sysexp);
+				$this->_commit();
+				1;
+			} or do {
+				$this->_rollback();
+			};
+		}
+	
+	
+#	  	print "Interactor A under ID: ", $idInteractorA, "\n";
+#		print "Interactor B under ID: ", $idInteractorB, "\n";
+	
+	
+		#--- Insertion des interaction_data ---#
+		foreach my $pubmed_id (@idPublications) {
+			foreach my $sys_exp (@idSysExp) {
+				eval {
+					$sth_insert_interaction_data->execute(
+						$PPi->{database},
+						$pubmed_id,
+						$PPi->{organism},
+						$sys_exp					
+					);
+					$this->_commit();	
+					$idInteractionData = (keys $sth_insert_protein->fetchall_hashref('id'))[0];
+					1;
+				} or do {
+					$this->_rollback();
+					$sth_select_interaction_data->execute(
+						$PPi->{database},
+						$pubmed_id,
+						$PPi->{organism},
+						$sys_exp
+					);
+					($idInteractionData) = $sth_select_interaction_data->fetchrow_array();
+				};
+			}
+		}
+		
+		#--- next PPi if we cannot properly add an interaction ---#
+		# thus we store in the database all information about the interaction (which can be reused)
+		next unless (defined($idInteractionData) && defined($idInteractorA) && defined($idInteractorB));
+		
+		
+		#--- Insertion de l'interaction ---#
+		eval {
+			$sth_insert_interaction->execute( $idInteractorA, $idInteractorB, $idInteractionData );
+			$this->_commit();
+			($idInteraction) = (keys $sth_insert_interaction->fetchall_hashref('id'))[0];
+			1;
+		} or do {
+			$this->_rollback();
+			$sth_select_interaction->execute( $idInteractorA, $idInteractorB, $idInteractionData );
+			($idInteraction) = $sth_select_interaction->fetchrow_array();
+		};
 
-# TODO : Commit pour chaque PPi (comme maintenant) ou pour le pool de PPi entier ??
-		$this->{'_dbh'}->commit();
+		
+		push(@addedPPiId, $idInteraction);
 	}
 
+	# TODO définir ce qui doit être retrouner
+	return(@addedPPiId);
 }
 
-sub disconnect () {
-	my ($this) = shift;
-	eval { $this->{'dbh'}->disconnect() };
-}
 
 sub DESTROY {
 	my ($this) = shift;
