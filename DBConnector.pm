@@ -230,7 +230,6 @@ sub insert() {
 
 		push(@addedPPiId, $idInteraction);
 	}
-
 }
 
 
