@@ -228,7 +228,6 @@ sub insert() {
 			($idInteraction) = $sth_select_interaction->fetchrow_array();
 		};
 
-		
 		push(@addedPPiId, $idInteraction);
 	}
 
