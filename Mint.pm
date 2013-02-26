@@ -66,8 +66,9 @@ sub download {
 	my @downloadFile = grep{/mint-full/} $ftp->dir();
 	
 	#Extracting file name and version date
-	if ($downloadFile[0] =~ /^.+\s((\d{4}-\d{2}-\d{2})\S+\.txt)$/) {
-		my $latestVersion = $2;
+	if ($downloadFile[0] =~ /^.+\s((\d{4})-(\d{2})-(\d{2})\S+\.txt)$/) {
+		my $latestVersion = $2.$3.$4;
+		
 		my $fileName = "ftp://mint.bio.uniroma2.it/pub/release/txt/current/".$1;
 		
 		print("Checking release date...\n");
@@ -75,7 +76,7 @@ sub download {
 		return ($savePath, -1) if($this->checkVersion($folder."version.txt", $latestVersion) == -1);
 		
 		#If download file already exists => saving the old one as old.
-		my $oldFile = $folder."old-".$1;
+		my $oldFile = $folder."old-Mint.txt";
 		move($savePath, $oldFile) if (-e $savePath);
 		
 		print("Downloading ".__PACKAGE__." data...\n");

@@ -117,6 +117,7 @@ sub download {
 			}
 		}
 	
+		print("Uncompressing...\n");
 		#Uncompressing file
 		my $uncompressingResult = $this->fileUncompressing($savePath, $fileUncompressed);
 		
