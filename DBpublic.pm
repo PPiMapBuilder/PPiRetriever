@@ -9,6 +9,7 @@ use Digest::MD5;
 use IO::Uncompress::AnyUncompress qw(anyuncompress $AnyUncompressError) ;
 use HTTP::Cookies;
 use LWP::UserAgent;
+use Archive::Extract;
 
 use Interaction;
 
@@ -86,19 +87,38 @@ sub fileUncompressing ($$) {
 	
 	#Getting the .txt file extracted
 	my @files = @{($ae->files)};
-	my $uncompressedFile;
+	my @uncompressedFiles;
 	foreach (@files) {
 		if(/.*\.txt$/) {
-			$uncompressedFile = $folder.$_;
+			push(@uncompressedFiles, $folder.$_);
 		} else {
-			unlink($folder.$_);
+			unlink($folder.$_); # deleting other files
 		}
+	}
+	
+	
+	my $uncompressedFile = "";
+	if(scalar(@uncompressedFiles) > 1) {
+		foreach(@uncompressedFiles) {
+			print $_."\n";
+			if(/$pathUncompressedFile/i) { 			#If this file has the same name as the one in $pathUncompressedFile (case insentitive)
+				$uncompressedFile = $_; 			#Saving this file
+			} else {
+				unlink($_);							#Deleting others...
+			}
+		}
+		
+		#Failed to select correct txt file from the one extracted
+		return -1 if($uncompressedFile == "");
+	} else {
+		$uncompressedFile = $uncompressedFiles[0];
 	}
 	
 	#Renaming the uncompressed file as $pathUncompressedFile
 	move $uncompressedFile, $pathUncompressedFile or return -1;
 	
-	return 1;
+	#Ok if $pathUncompressedFile does exists
+	return (-e $pathUncompressedFile) ? $pathUncompressedFile : -1;
 }
 
 
@@ -153,6 +173,9 @@ sub checkVersion ($$) {
 
 
 #Extract folder, file name (without extension) and the extension of a file path
+#returns	=>	The folder path
+#			=>	The file name (if there is any)
+#			=>	The extension of the file (if there is any)
 sub extractPathInfo ($) {
 	my $path = $_[1];
 	
