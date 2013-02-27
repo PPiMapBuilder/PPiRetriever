@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use Interaction;
 use DBI;
-use Data::Dumper;
 
 sub new() {
 	my ( $class, $host, $port, $dbname, $username, $password ) = @_;
@@ -16,7 +15,6 @@ sub new() {
 		'_username' => $username,
 		'_password' => $password,
 		'_dbh'      => undef,
-
 		# should make following arguments editable
 		'_autoCommit' => 0,
 		'_raiseError' => 1,
@@ -257,26 +255,11 @@ sub insert() {
 	}
 }
 
-
 sub DESTROY {
 	my ($this) = shift;
 	$this->disconnect();
 }
 
-#-------------- DEBUG SUBs -------------#
-
-sub dbg_select() {
-	my ($this) = @_;
-
-	my $sth = $this->{'_dbh'}->prepare("select * from organism");
-	$sth->execute();
-	my $hash_ref = $sth->fetchall_hashref('tax_id');
-
-	return $hash_ref;
-}
-
 1;
 
 __END__
-
-commentaires et documentation
