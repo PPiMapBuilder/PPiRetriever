@@ -108,7 +108,6 @@ sub parse {
 			$intA = $hash_uniprot_id{$uniprot_A};    # we retrieve it from the file
 		}
 		else {                    # If we need to retrieve it from the web
-			print $uniprot_A."\n";
 			$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
 			                   # We call the corresponding function
 			next if ( $intA eq "" ); # If the gene was not retrieved, we do not keep the interaction

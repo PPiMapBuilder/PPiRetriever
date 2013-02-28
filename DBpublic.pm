@@ -49,7 +49,7 @@ sub afficheTest {
 
 
 sub gene_name_to_uniprot_id () {
-	my ($first, $organism) = @_;
+	my ($this, $first, $organism) = @_;
 
 	my $query = $first.' AND organism:"'.$organism.'" AND reviewed:yes';
 	my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); die "Couldn't get it!" unless defined $file;
@@ -60,8 +60,9 @@ sub gene_name_to_uniprot_id () {
 }
 
 sub uniprot_id_to_gene_name() {
-	my ($uniprot_id) = @_;
-	my $file = get("http://www.uniprot.org/uniprot/".$uniprot_id.".xml");
+	my ($this, $uniprot) = @_;
+	
+	my $file = get("http://www.uniprot.org/uniprot/".$uniprot.".xml");
 	die "Couldn't get it!" unless defined $file;
 	
 	if ($file =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {
