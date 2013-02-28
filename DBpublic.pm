@@ -9,6 +9,7 @@ use Digest::MD5;
 use IO::Uncompress::AnyUncompress qw(anyuncompress $AnyUncompressError) ;
 use HTTP::Cookies;
 use LWP::UserAgent;
+use LWP::Simple;
 use Archive::Extract;
 
 use Interaction;
@@ -45,6 +46,33 @@ sub afficheTest {
 	my ($this) = @_;
 	print @{$this->{ArrayInteraction}}[0]->toString();
 }
+
+
+sub gene_name_to_uniprot_id () {
+	my ($first, $organism) = @_;
+
+	my $query = $first.' AND organism:"'.$organism.'" AND reviewed:yes';
+	my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); die "Couldn't get it!" unless defined $file;
+
+	if ($file =~ /<accession>(\S+)<\/accession>/s) {
+		return $1;
+	}
+}
+
+sub uniprot_id_to_gene_name() {
+	my ($uniprot_id) = @_;
+	my $file = get("http://www.uniprot.org/uniprot/".$uniprot_id.".xml");
+	die "Couldn't get it!" unless defined $file;
+	
+	if ($file =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {
+		return $1;
+	}
+	else {
+		return "";
+	}
+}
+
+
 
 
 #Check if to file are the same (with MD5)
