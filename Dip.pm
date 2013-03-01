@@ -232,20 +232,18 @@ sub download {
 	}
 
 	#Searching first HTTP link to a .txt.gz file
-	if ( $download_page =~ /HREF="(.+\.txt\.gz)">HTTP/m ) {
+	if ( $download_page =~ /HREF="(.+dip(\d+)\.txt\.gz)">HTTP/m ) {
 		my @pathinfo = $this->extractPathInfo($1);
 		my $extension = $pathinfo[2];
 		my $dataFile = "http://dip.doe-mbi.ucla.edu" . $1;
+		my $lastestVersion = $2;
 		#print $dataFile. "\n";
 
 		print("Checking release date...\n");
 
 		#Searching the release date in the name of the file
 		#Example: /dip/File.cgi?FN=2012/tab25/dip20120818.txt.gz (extracting the "20120818")
-		if ( $dataFile =~ /.+dip(\d+).+/ ) {
-			# No need for update, No need for download
-			return ($fileUncompressed, -1) if $this->checkVersion($folder."version.txt", $1) == -1; 
-		}
+		return ($fileUncompressed, -1) if $this->checkVersion($folder."version.txt", $lastestVersion) == -1; 
 		
 		print("Downloading ".__PACKAGE__." data...\n");
 		my $saveFile = __PACKAGE__.$extension;

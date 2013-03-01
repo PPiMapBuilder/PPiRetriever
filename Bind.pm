@@ -50,7 +50,6 @@ sub download {
 	}
 	no warnings 'numeric';
 	use URI::Escape;
-	use Data::Dumper;
 	
 	#checking if we have a email and password used to connect to BOND
 	if(not $this->{email} or not $this->{password}) {
@@ -138,11 +137,25 @@ sub download {
 	print("Downloading ".__PACKAGE__." data... (Can be very long)\n");
 	$ua->show_progress('true value');
 	$res = $ua->request($req, $fileUncompressed);
-		
-	unless($res->is_success or -f $fileUncompressed) {
-		return ("", -2); #Connection failed
+	
+	#Connexion failed unless the response is successful
+	return ("", -2) unless($res->is_success);
+	
+	#Checking that the file is not a dummy html file
+	unless(-e $fileUncompressed or open F, ">".$fileUncompressed ) {
+		unlink($fileUncompressed);
+		return ("", -2);
 	}
-	print "File successfully downloaded!\n";
+	my $i = 0;
+	while(<F>) {
+		last if ($i == 30); 			#Checking only the first 30 lines
+		if(/.*<html>.*/) {
+			unlink ($fileUncompressed);
+			return ("", -2);			 #File contains html :(
+		}
+		$i++;
+	}
+	close F;
 	
 	#Compare new and old file (if exists)
 	if(-e $oldFile) {
