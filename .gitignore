@@ -6,7 +6,6 @@ MINT/
 INTACT/
 BIND/
 HPRD/
-test_DBConnector.pl
-BIOGRID.txt
 gene_name_to_uniprot_database.txt
 test.pl
+test_DBConnector.pl

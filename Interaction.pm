@@ -64,9 +64,9 @@ sub toString {
 	  . "\n";
 
 	print "Pubmed :\n";
-	print " - $_\n" foreach ( @{ $this->{pubmed} } );
+	foreach ( @{ $this->{pubmed} } ) {print "- $_\n" if (defined ($_));};
 	print "Experimental system :\n";
-	print " - $_\n" foreach ( @{ $this->{sys_exp} } );
+	foreach ( @{ $this->{sys_exp} } ) {print "- $_\n" if (defined ($_));};
 #	print "-------------------------\n";
 
 }

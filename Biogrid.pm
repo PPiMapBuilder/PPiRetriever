@@ -80,12 +80,6 @@ sub parse {
 			if ( $data[16] eq $tax_id ) { # If the taxonomy id is present
 				$origin = $hash_orga_tax{$tax_id}; # We put the organism name into the "origin" variable
 				$orga_query = "$hash_orga_tax{$tax_id} [$tax_id]";
-				if ( $tax_id eq '9606' ) { #  If the organism is Homo sapiens, the "predictive from" will be "Human"
-					$pred = 'Human';
-				}
-				else { # Else it will be "Interolog"
-					$pred = 'Interolog';
-				}
 				last;
 			}
 
