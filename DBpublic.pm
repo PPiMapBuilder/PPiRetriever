@@ -4,9 +4,7 @@ use strict;      	#Variable declaration control
 use Carp;        	#Additionnal user warnings
 
 use File::Copy;
-use Data::Dumper;
 use Digest::MD5;
-use IO::Uncompress::AnyUncompress qw(anyuncompress $AnyUncompressError) ;
 use HTTP::Cookies;
 use LWP::UserAgent;
 use Archive::Extract;
@@ -47,24 +45,30 @@ sub afficheTest {
 }
 
 
-#Check if to file are the same (with MD5)
+#Check if two files are identical (with MD5)
+#	@param	$file1	=>	Path to first file you want to test
+#	@param	$file2	=>	Path to second file you want to test
+#	@return	=> -1 If an error occured
+#			=>  1 If the two files are identical
+#			=>  0 If the two files are different	
 sub md5CheckFile ($$) {
+	my ($this, $file1, $file2) = @_;
 	my ($md5a, $md5b);
-	if(open( FILE1, $_[1] ) && open( FILE2, $_[2] )) {	
+	if(open( FILE1, $file1) && open( FILE2, $file2)) {	
 		$md5a = Digest::MD5->new->addfile(*FILE1)->clone->hexdigest;
 		$md5b = Digest::MD5->new->addfile(*FILE2)->clone->hexdigest;
 	}
 	else {
 		print "File not found in md5 comparison!\n";
-		return 0;
+		return -1;
 	}
-	return (($md5a cmp $md5b) == 0);
+	return (($md5a cmp $md5b) == 0)?1:0;
 }
 
 
 #Uncompressing file given in parameter
-#@return	=> 	 1	if succeded
-#				-1	if failed
+#	@return	=> 	 1	if succeded
+#			=>	-1	if failed
 sub fileUncompressing ($$) {
 	my ($this) = @_;
 	no warnings 'numeric';
@@ -121,9 +125,10 @@ sub fileUncompressing ($$) {
 }
 
 
-#Setting the working folder
-#returns -1 if folder can't be created
-#returns the relative path to folder if succeeded
+#Setting the working folder (check if the folder exist or create it)
+#	@param	$folder	=>	Path to the folder
+#	@return =>	-1 If the folder can't be created
+#			=>	 The relative path to folder if succeeded
 sub setDownloadFolder($) {
 	my $folder = $_[1]."/";
 	unless ( -e $folder or mkdir $folder ) {
@@ -139,16 +144,22 @@ sub setDownloadFolder($) {
 #		=> $newVersion is really new
 #   Else if version in $file == $newVersion 
 #		=> $newVersion is same as before (no need for update)
+#
+#	@param	$file		=> path to file storing the current version
+#			$newVersion	=> version to test against the oen stored in $file
+#
+#	@return	=>	-1 Version in $file and $newVersion are the same
+#			=>	-2 Can't find/create the version file
+#			=>	 1 Version in $file and $newVersion are different
 sub checkVersion ($$) {
-	my $file = $_[1];
-	my $newVersion = $_[2];
+	my ($this, $file, $newVersion) = @_;
 	
 	#Creating file if doesn't exists
 	unless(-e $file) {
 		unless(open F, ">".$file) {
 			print "Cannot open version file";
-			return -1
-		};  
+			return -2
+		}
 		print F "";
 		close(F)
 	}
@@ -168,13 +179,14 @@ sub checkVersion ($$) {
 	}
 	
 	close(VERSION);
+	return 1;
 }
 
 
 #Extract folder, file name (without extension) and the extension of a file path
-#returns	=>	The folder path
-#			=>	The file name (if there is any)
-#			=>	The extension of the file (if there is any)
+#	@return	=>	The folder path
+#	@return	=>	The file name (if there is any)
+#	@return	=>	The extension of the file (if there is any)
 sub extractPathInfo ($) {
 	my $path = $_[1];
 	
@@ -187,18 +199,16 @@ sub extractPathInfo ($) {
 }
 
 #Create and setup the user agent
+#	@return	=>	The new LWP::UserAgent
+#	@return	=>	HTTP::Cookie used to store cookie during browsing
 sub setUserAgent {
-	my $cookieFile = $_[1];
-	
 	my $ua = LWP::UserAgent->new;
 	$ua->agent('Mozilla/5.5 (compatible; MSIE 5.5; Windows NT 5.1)');
 	
-	if($cookieFile) {
-		my $cookie = HTTP::Cookies->new( file => $cookieFile, autosave => 1 );
-		$ua->cookie_jar($cookie);
-		return $ua, $cookie;
-	}
-	return $ua;
+	my $cookie = HTTP::Cookies->new();
+	$ua->cookie_jar($cookie);
+	
+	return $ua, $cookie;
 }
 
 1;

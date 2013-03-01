@@ -15,11 +15,16 @@ $SIG{INT} = \&catch_ctrlc;
 
 our @ISA = ("DBpublic");
 
-sub new {
-	my ($classe) = @_;                  #Sending arguments to constructor
+#Dip retriever constructor
+#	@param  $user 		=> Valid user identifier for DIP database connexion
+#	@param	$password   => Valid password for DIP database connexion
+sub new($$) {
+	my ($classe, $user, $password) = @_;		#Sending arguments to constructor
 	my $this = $classe->SUPER::new();
-	bless( $this, $classe );            #Linking the reference to the class
-	return $this;                       #Returning the blessed reference
+	$this->{"user"} = $user;
+	$this->{"password"} = $password;
+	bless( $this, $classe );					#Linking the reference to the class
+	return $this;                       		#Returning the blessed reference
 }
 
 
@@ -36,9 +41,16 @@ sub parse {
 #				-2  Failure: Connexion to server failed
 #				-3	Failure: Can't create/find download folder
 #				-4	Failure: Uncompressing failed
+#				-5	Failure: Missing user or password
 sub download {
 	my ($this) = @_;
 	no warnings 'numeric';
+	
+	#checking if we have a username and password used to connect to Dip
+	if(not $this->{user} or not $this->{password}) {
+		print ("Error: Missing user or passowrd for Login!");
+		return ("", -5);
+	}
 	
 	#working folder (with the name of current DB)
 	my $folder = $this->setDownloadFolder(uc(__PACKAGE__));
@@ -49,13 +61,14 @@ sub download {
 	my $fileUncompressed = $folder."Dip.txt";
 	
 	#Preparing the user agent and the cookie storage
-	my ($ua, $cookie) = $this->setUserAgent($folder."cookies.txt");
+	my ($ua, $cookie) = $this->setUserAgent();
 
 	#Getting the download page (with multiple attempt)
 	my $download_page = "";
 	my $attempt = 1;
 	until ( $download_page =~ /HREF="(.+\.txt\.gz)">HTTP/m ) {
-		if ( $attempt == 6 ) { return -2; }
+		#No more attempt left
+		return ("", -2) if ($attempt > 5);
 
 		print("Connecting to ".__PACKAGE__."... ");
 		if ( $attempt > 1 ) { print( "(Attempt #" . $attempt . ")" ); }
@@ -63,9 +76,9 @@ sub download {
 		
 		#Sending first HTTP request (login)
 		my $req = HTTP::Request->new(POST => "http://dip.doe-mbi.ucla.edu/dip/Login.cgi" );
-		$req->content("login=pidupuis&pass=toto&Login=Login&lgn=1");#Login informations
+		$req->content("login=".$this->{user}."&pass=".$this->{password}."&Login=Login&lgn=1");#Login informations
 		$ua->request($req);
-
+		 
 		#Sending second HTTP request (get download page)
 		$req = HTTP::Request->new(GET => "http://dip.doe-mbi.ucla.edu/dip/Download.cgi?SM=3" );
 		$download_page = ( $ua->request($req) )->content;
@@ -79,7 +92,7 @@ sub download {
 		my @pathinfo = $this->extractPathInfo($1);
 		my $extension = $pathinfo[2];
 		my $dataFile = "http://dip.doe-mbi.ucla.edu" . $1;
-		print $dataFile. "\n";
+		#print $dataFile. "\n";
 
 		print("Checking release date...\n");
 
@@ -105,9 +118,6 @@ sub download {
 		unless($res->is_success) {
 			return ("", -2); #Connection failed
 		}
-
-		#Clearing cookies
-		$cookie->clear();
 
 		#Compare new and old file (if exists)
 		if(-e $oldFile) {
