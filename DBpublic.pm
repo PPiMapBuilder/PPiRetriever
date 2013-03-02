@@ -9,6 +9,8 @@ use HTTP::Cookies;
 use LWP::UserAgent;
 use Archive::Extract;
 
+use LWP::Simple; #Needed to use the function get
+
 use Interaction;
 
 #Will contain an array of 10 interaction objects
