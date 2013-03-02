@@ -133,7 +133,7 @@ sub fileUncompressing ($$) {
 	if(scalar(@uncompressedFiles) > 1) {
 		foreach(@uncompressedFiles) {
 			#print $_."\n";
-			if(/$pathUncompressedFile/i) { 		#If this file has the same name as the one in $pathUncompressedFile (case insentitive)
+			if(uc($_) eq uc($pathUncompressedFile)) { 		#If this file has the same name as the one in $pathUncompressedFile (case insentitive)
 				$uncompressedFile = $_; 		#Saving this file
 			} else {
 				unlink($_);						#Deleting others...
@@ -141,7 +141,7 @@ sub fileUncompressing ($$) {
 		}
 		
 		#Failed to select correct txt file from the one extracted
-		return -1 if($uncompressedFile == "");
+		return -1 if($uncompressedFile eq "");
 	} else {
 		$uncompressedFile = $uncompressedFiles[0];
 	}

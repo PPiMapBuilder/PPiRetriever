@@ -73,7 +73,7 @@ sub download {
 	my $res;
 	my $attempt = 1;
 	until($result =~ /.*>Logout<.*/) {
-		return ("", -2) if($attempt > 3); #Login failed
+		return ("", -2) if($attempt > 5); #Login failed
 		
 		print("Connecting to ".__PACKAGE__."... ");
 		if ( $attempt > 1 ) { print( "(Attempt #" . $attempt . ")" ); }
@@ -134,9 +134,24 @@ sub download {
 	my $oldFile = $folder."old-Bind.txt";
 	move($fileUncompressed, $oldFile) if (-e $fileUncompressed);
 	
-	print("Downloading ".__PACKAGE__." data... (Can be very long)\n");
+	#Downloading BIND with multiple attempt
+	my $downloadOk = 0;
+	$attempt = 1;
+	
 	$ua->show_progress('true value');
-	$res = $ua->request($req, $fileUncompressed);
+	until ($downloadOk) {
+		return ("", -2) if ($attempt >5); #Download failed after 5 attempt
+		
+		print("Downloading ".__PACKAGE__." data... (Can be very long)");
+		if ( $attempt > 1 ) { sleep(1);print( " (Attempt #" . $attempt . ")" ); }
+		print("\n");
+		
+		#use Data::Dumper;print Dumper($req);		
+		$res = $ua->request($req, $fileUncompressed);
+
+		$downloadOk = $res->is_success;
+		$attempt++;
+	}
 	
 	#Connexion failed unless the response is successful
 	return ("", -2) unless($res->is_success);
