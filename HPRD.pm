@@ -49,7 +49,7 @@ sub download {
 	my $fileUncompressed = $folder."HPRD.txt";
 	
 	#Preparing the user agent and the cookie storage
-	my ($ua, $cookie) = $this->setUserAgent();
+	my $ua = $this->setUserAgent();
 
 	#Getting the download page (with multiple attempt)
 	my $download_page = "";
