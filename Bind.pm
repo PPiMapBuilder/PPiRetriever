@@ -66,7 +66,7 @@ sub download {
 	my $fileUncompressed = $folder."Bind.txt";
 	
 	#Preparing the user agent and the cookie storage
-	my $ua = $this->setUserAgent();
+	my ($ua, $cookie) = $this->setUserAgent();
 
 	#Login to BOND
 	my $result = "";

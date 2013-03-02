@@ -130,7 +130,7 @@ sub fileUncompressing ($$) {
 	my $uncompressedFile = "";
 	if(scalar(@uncompressedFiles) > 1) {
 		foreach(@uncompressedFiles) {
-			#print $_."\n";
+			print $_."\n";
 			if(/$pathUncompressedFile/i) { 		#If this file has the same name as the one in $pathUncompressedFile (case insentitive)
 				$uncompressedFile = $_; 		#Saving this file
 			} else {
@@ -232,8 +232,11 @@ sub extractPathInfo ($) {
 sub setUserAgent {
 	my $ua = LWP::UserAgent->new;
 	$ua->agent('Mozilla/5.5 (compatible; MSIE 5.5; Windows NT 5.1)');
-	$ua->cookie_jar(HTTP::Cookies->new());
-	return $ua;
+	
+	my $cookie = HTTP::Cookies->new();
+	$ua->cookie_jar($cookie);
+	
+	return $ua, $cookie;
 }
 
 1;
