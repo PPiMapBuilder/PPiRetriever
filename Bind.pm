@@ -157,13 +157,12 @@ sub download {
 	return ("", -2) unless($res->is_success);
 	
 	#Checking that the file is not a dummy html file
-	unless(-e $fileUncompressed or open F, ">".$fileUncompressed ) {
-		unlink($fileUncompressed);
-		return ("", -2);
-	}
+	return ("", -2) unless(-e $fileUncompressed);
+		
 	my $i = 0;
+	open F, $fileUncompressed;
 	while(<F>) {
-		last if ($i == 30); 			#Checking only the first 30 lines
+		last if ($i > 30); 				#Checking only the first 30 lines
 		if(/.*<html>.*/) {
 			unlink ($fileUncompressed);
 			return ("", -2);			 #File contains html :(
