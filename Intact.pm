@@ -209,19 +209,19 @@ sub download {
 	my @latest = grep{/current/} $ftp->dir();
 	
 	my $latestVersion; #Number of latest version ex: 20130130
-	my $versionFolder; #Folder of the latest version ex: 2013-01-30/
 	#Extracting version date
-	if($latest[0] =~ /(\d{4})-(\d{2})-(\d{2})$/) {
+	if($latest[0] =~ /->\s(\d{4})-(\d{2})-(\d{2})/) {
 		$latestVersion = $1.$2.$3;
-		$versionFolder = $1."-".$2."-".$3;
 		
 		print("Checking release date...\n");
 		#Check the current available version on Mint server and stop program if current version stored in version.txt correspond to latest version
 		return ($fileUncompressed, -1) if($this->checkVersion($folder."version.txt", $latestVersion) == -1);
+	} else {
+		return ("", -2);
 	}
 	
-	#Go in current veriosn folder and set file to download
-	$ftp->cwd($versionFolder."/psimitab/");
+	#Go in current version folder and set file to download
+	$ftp->cwd("current/psimitab/");
 	my $url = "ftp://ftp.ebi.ac.uk".$ftp->pwd()."/intact.zip";
 	
 	#If download file already exists => saving the old one as old.
