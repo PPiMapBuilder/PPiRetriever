@@ -47,6 +47,7 @@ sub getInteraction {
 sub afficheTest {
 	my ($this) = @_;
 	print @{$this->{ArrayInteraction}}[0]->toString();
+	print @#{$this->{ArrayInteraction}}."\n";
 }
 
 sub sendBDD {
