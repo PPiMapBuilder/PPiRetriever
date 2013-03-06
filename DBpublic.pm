@@ -11,6 +11,8 @@ use Archive::Extract;
 
 use LWP::Simple; #Needed to use the function get
 
+use DBConnector;
+
 use Interaction;
 
 #Will contain an array of 10 interaction objects
@@ -21,7 +23,8 @@ use Interaction;
 sub new {
 	my ( $classe ) = @_;		#Sending arguments to constructor
 	my $this = {
- 		"ArrayInteraction" => []
+ 		"ArrayInteraction" => [],
+ 		"DBConnector" => DBConnector->new("", "", "", "", "")
 	};
 
 	bless( $this, $classe );	#Linking the reference to the class
@@ -46,6 +49,11 @@ sub afficheTest {
 	print @{$this->{ArrayInteraction}}[0]->toString();
 }
 
+sub sendBDD {
+	my ($this) = @_;
+	$this->{DBConnector}->insert(\@{$this->{ArrayInterraction}});
+	@{$this->{ArrayInteraction}}=undef;
+}
 
 sub gene_name_to_uniprot_id () {
 	my ($this, $first, $organism) = @_;

@@ -92,6 +92,7 @@ sub parse {
 		}
 		else { # If we need to retrieve it from the web
 			$uniprot_A = $this->SUPER::gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
+			next if ($uniprot_A == 1 || $uniprot_A == 0);
 			$hash_uniprot_id->{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
 			#$internet .= 'i'; # We indicate that we used an internet connection
@@ -105,6 +106,7 @@ sub parse {
 		}
 		else {
 			$uniprot_B = $this->SUPER::gene_name_to_uniprot_id( $intB, $orga_query );
+			next if ($uniprot_B == 1 || $uniprot_B == 0);
 			$hash_uniprot_id->{$intB}->{$orga_query} = $uniprot_B;
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
 			# $internet .= 'i';
@@ -128,6 +130,9 @@ sub parse {
 		my $interaction = Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
 
 		$this->SUPER::addInteraction($interaction);
+		if ($#{$this->{ArrayInteraction}}>=50) {
+			$this->SUPER::sendBDD();
+		}
 
 		#print "$i $internet\t$intA\t$uniprot_A\t$intB\t$uniprot_B\t$exp_syst\t$origin\t$database\t$pubmed\t$pred\n"; # Input for debug
 

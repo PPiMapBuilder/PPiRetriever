@@ -135,7 +135,7 @@ sub insert() {
 		eval {
 			$sth_insert_protein->execute( $PPi->getUniprotA(), $PPi->getGeneNameA() );
 			$this->_commit();
-			$idInteractorA = (keys $sth_insert_protein->fetchall_hashref('id'))[0];
+			$idInteractorA = (keys %{$sth_insert_protein->fetchall_hashref('id')})[0];
 #			print "[INTERACTOR A]\t",$PPi->getUniprotA(), ":", $PPi->getGeneNameA(),"\n";
 			1;
 		} or do {
@@ -151,7 +151,7 @@ sub insert() {
 		eval {
 			$sth_insert_protein->execute( $PPi->getUniprotB(), $PPi->getGeneNameB() );
 			$this->_commit();
-			($idInteractorB) = (keys $sth_insert_protein->fetchall_hashref('id'))[0];
+			($idInteractorB) = (keys %{$sth_insert_protein->fetchall_hashref('id')})[0];
 #			print "[INTERACTOR B]\t",$PPi->getUniprotB(), ":", $PPi->getGeneNameB(),"\n";
 			1;
 		} or do {
@@ -206,7 +206,7 @@ sub insert() {
 						$sys_exp					
 					);
 					$this->_commit();	
-					push (@idInteractionData , (keys $sth_insert_protein->fetchall_hashref('id'))[0]);
+					push (@idInteractionData , (keys %{$sth_insert_protein->fetchall_hashref('id')})[0]);
 					1;
 				} or do {
 					$this->_rollback();
@@ -231,7 +231,7 @@ sub insert() {
 		eval {
 			$sth_insert_interaction->execute( $idInteractorA, $idInteractorB );
 			$this->_commit();
-			($idInteraction) = (keys $sth_insert_interaction->fetchall_hashref('id'))[0];
+			($idInteraction) = (keys %{$sth_insert_interaction->fetchall_hashref('id')})[0];
 			1;
 		} or do {
 			$this->_rollback();

@@ -55,12 +55,10 @@ sub download {
 	
 	print("Connecting to ".__PACKAGE__."...\n");
 	#Connecting to Intact and searching for the latest version
-	my $ftp = Net::FTP->new("ftp.ebi.ac.uk", Debug => 0) 
-		or return ("", -2);
-	$ftp->login("anonymous","anonymous")
-    	or return ("", -2);
-	$ftp->cwd("/pub/databases/intact/")
-    	or return ("", -2);
+	my $ftp = Net::FTP->new("ftp.ebi.ac.uk", Debug => 0, Passive=> 1) or return ("", -2);
+	$ftp->login("anonymous","anonymous") or return ("", -2);
+	$ftp->cwd("/pub/databases/intact/") or return ("", -2);
+	
 	my @latest = grep{/current/} $ftp->dir();
 	
 	my $latestVersion; #Number of latest version ex: 20130130
@@ -72,12 +70,11 @@ sub download {
 		#Check the current available version on Mint server and stop program if current version stored in version.txt correspond to latest version
 		return ($fileUncompressed, -1) if($this->checkVersion($folder."version.txt", $latestVersion) == -1);
 	} else {
-		return ("", -2);
+		return ("", -2); #Can't get the current version => connexion error
 	}
 	
 	#Go in current version folder and set file to download
 	$ftp->cwd("current/psimitab/");
-	my $url = "ftp://ftp.ebi.ac.uk".$ftp->pwd()."/intact.zip";
 	
 	#If download file already exists => saving the old one as old.
 	my $oldFile = $folder."old-Intact.zip";
@@ -85,19 +82,22 @@ sub download {
 		
 	print("Downloading ".__PACKAGE__." data...\n");
 	#Downloading the latest Mint full txt
-	$ua->show_progress('true value');
-	my $res = $ua->get($url, ':content_file' => $savePath);
-		
+	#$ua->show_progress('true value');
+	#my $res = $ua->get($url, ':content_file' => $savePath);
+	$ftp->hash(\*STDERR, 5120*200);
+	print("0%------------------------------------------------------------------------------------100%\n");
+	my $ok = $ftp->get("intact.zip", $savePath);
+	
 	#Checking downloaded file
-	unless($res->is_success or -f $savePath) {
+	unless($ok or -f $savePath) {
 		return ("", -2); #Connection failed
 	}
 		
 	#Compare new and old file (if exists)
 	if(-e $oldFile) {
 		if($this->md5CheckFile($savePath, $oldFile)) {
-			unlink($oldFile);		#Deleting old file since old and new are the same
-			return ($fileUncompressed, -1); # No need for update old and new are the same
+			unlink($oldFile);					#Deleting old file since old and new are the same
+			return ($fileUncompressed, -1); 	# No need for update old and new are the same
 		}
 	}
 	
