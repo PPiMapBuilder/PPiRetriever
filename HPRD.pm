@@ -25,7 +25,7 @@ sub new {
 
 sub parse {
 
-	my ( $this, $stop, $adresse ) = @_;
+	my ( $this, $stop, $adresse, $verbose ) = @_;
 
 	$stop = defined($stop) ? $stop : -1;
 	$adresse ||=1;
@@ -43,7 +43,7 @@ sub parse {
 
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
-	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );    # A file to keep this hash
+	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" ) or return -1;    # A file to keep this hash
 	while (<gene_name_to_uniprot_file>)
 	{      # We initialize the hash with the data contained in the file
 		chomp($_);
@@ -93,6 +93,7 @@ sub parse {
 		}
 		else { # If we need to retrieve it from the web
 			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
+			next if ($uniprot_A eq "1" || $uniprot_A eq "0"); 
 			$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
 			#$internet .= 'i'; # We indicate that we used an internet connection
@@ -105,6 +106,7 @@ sub parse {
 		}
 		else {
 			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
+			next if ($uniprot_B eq "1" || $uniprot_B eq "0"); 
 			$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
 			# $internet .= 'i';

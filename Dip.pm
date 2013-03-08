@@ -114,6 +114,7 @@ sub parse {
 		}
 		else {                    # If we need to retrieve it from the web
 			$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
+			next if ($intA eq "1" || $intA eq "0"); 
 			                   # We call the corresponding function
 			next if ( $intA eq "" ); # If the gene was not retrieved, we do not keep the interaction
 
@@ -130,10 +131,7 @@ sub parse {
 		else {                    # If we need to retrieve it from the web
 			$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
 			                   # We call the corresponding function
-			if ( $intB eq "" )
-			{ # If the gene was not retrieved, we do not keep the interaction
-				next;
-			}
+			next if ($intA eq "1" || $intA eq "0"); 
 
 			$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
