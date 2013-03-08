@@ -156,7 +156,7 @@ sub parse {
 
 		}
 		$i++;
-		print "[HPRD] $i : $uniprot_A - $intA\t$uniprot_B - $intB";
+		print "[HPRD] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
 		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
 
 	}
