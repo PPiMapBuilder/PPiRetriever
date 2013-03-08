@@ -18,8 +18,8 @@ our @ISA = ("DBpublic");
 
 
 sub new {
-	my ($classe) = @_;                  #Sending arguments to constructor
-	my $this = $classe->SUPER::new();
+	my ($classe, $connector) = @_;                  #Sending arguments to constructor
+	my $this = $classe->SUPER::new($connector);
 	bless( $this, $classe );            #Linking the reference to the class
 	return $this;                       #Returning the blessed reference
 }
@@ -45,15 +45,16 @@ sub parse {
 
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
-	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );    # A file to keep this hash
-	while (<gene_name_to_uniprot_file>)
-	{      # We initialize the hash with the data contained in the file
-		chomp($_);
-		my @convertion_data = split( /\t/, $_ );
-		$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
-		  $convertion_data[1];
-	}
-	close(gene_name_to_uniprot_file);
+	 if (-f "gene_name_to_uniprot_database.txt")   {
+	 	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );
+	 	while (<gene_name_to_uniprot_file>) {      # We initialize the hash with the data contained in the file
+			chomp($_);
+			my @convertion_data = split( /\t/, $_ );
+			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
+		  	$convertion_data[1];
+		}
+		close(gene_name_to_uniprot_file);
+	 }   
 
 	open( data_file, $adresse );    # We open the database file
 	my $database = 'Mint';  # We note the corresponding database we are using
@@ -147,9 +148,9 @@ sub parse {
 			$this->SUPER::sendBDD();
 
 		}
-		#print "$i $internet\t$intA\t$uniprot_A\t$intB\t$uniprot_B\t$exp_syst\t$origin\t$database\t$pubmed\t$pred\n"; # Input for debug
 
 		$i++;
+		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
 
 	}
 

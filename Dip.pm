@@ -18,9 +18,9 @@ our @ISA = ("DBpublic");
 #Dip retriever constructor
 #	@param  $user 		=> Valid user identifier for DIP database connexion
 #	@param	$password   => Valid password for DIP database connexion
-sub new($$) {
-	my ($classe, $user, $password) = @_;		#Sending arguments to constructor
-	my $this = $classe->SUPER::new();
+sub new() {
+	my ($classe, $user, $password, $connector) = @_;		#Sending arguments to constructor
+	my $this = $classe->SUPER::new($connector);
 	$this->{"user"} = $user;
 	$this->{"password"} = $password;
 	bless( $this, $classe );					#Linking the reference to the class
@@ -48,7 +48,7 @@ sub parse {
 
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
-	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );    # A file to keep this hash
+	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );    # A file to keep this hash
 	while (<gene_name_to_uniprot_file>)
 	{      # We initialize the hash with the data contained in the file
 		chomp($_);
@@ -62,7 +62,7 @@ sub parse {
 
 	my $i = 0;
 
-	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" )
+	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" )
 	  ; # During this time, we complete the file which contains the uniprot id for a gene name and an organism
 	while (<data_file>) {
 

@@ -16,8 +16,8 @@ $SIG{INT} = \&catch_ctrlc;
 our @ISA = ("DBpublic");
 
 sub new {
-	my ($classe) = @_;                  #Sending arguments to constructor
-	my $this = $classe->SUPER::new();
+	my ($classe, $connector) = @_;                  #Sending arguments to constructor
+	my $this = $classe->SUPER::new($connector);
 	bless( $this, $classe );            #Linking the reference to the class
 	return $this;                       #Returning the blessed reference
 }
@@ -88,12 +88,15 @@ print "[DEBUG : Biogrid] line: ",$. ,"\n";
 		my @data = split( /\t/, $_ ); # We split the line into an array
 
 		$origin = $data[16] if (defined($hash_orga_tax{$data[16]}));
-print "[DEBUG : Biogrid] origin: $origin\n";
+
 
 		if ( !$origin ) { # If the origin is null, so if the interaction is not from one of the seven organisms, we do not consider this interaction
 print "[DEBUG : Biogrid] origin not defined, next\n";
 			next;
+		} else {
+				print "[DEBUG : Biogrid] origin: $origin\n";	
 		}
+
 		$orga_query = "$hash_orga_tax{$origin} [$origin]";
 print "[DEBUG : Biogrid] orga_query: $orga_query\n";
 		#my $internet = undef; # Temporary variable to see the number of request to the uniprot.org server

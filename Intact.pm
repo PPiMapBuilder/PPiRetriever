@@ -18,8 +18,8 @@ our @ISA = ("DBpublic");
 
 
 sub new {
-	my ($classe) = @_;                  #Sending arguments to constructor
-	my $this = $classe->SUPER::new();
+	my ($classe, $connector) = @_;                  #Sending arguments to constructor
+	my $this = $classe->SUPER::new($connector);
 	bless( $this, $classe );            #Linking the reference to the class
 	return $this;                       #Returning the blessed reference
 }
