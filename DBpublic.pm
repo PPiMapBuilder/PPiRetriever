@@ -1,12 +1,13 @@
 package DBpublic;   #Name for the package and for the class
-use warnings;    	#Activate all warnings 
+
 use strict;      	#Variable declaration control
-use Carp;        	#Additionnal user warnings
 
 use File::Copy;
 use Digest::MD5;
 use HTTP::Cookies;
 use LWP::UserAgent;
+
+use Archive::Extract;
 
 use Data::Dumper;
 
@@ -22,10 +23,10 @@ use Interaction;
 
 
 sub new {
-	my ( $classe ) = @_;		#Sending arguments to constructor
+	my ( $classe, $DBConnector ) = @_;		#Sending arguments to constructor
 	my $this = {
  		"ArrayInteraction" => [],
- 		"DBConnector" => DBConnector->new("", "", "", "", "")
+ 		"DBConnector" => $DBConnector
 	};
 
 	bless( $this, $classe );	#Linking the reference to the class
@@ -57,7 +58,19 @@ sub sendBDD {
 	my ($this) = @_;
 	$this->{DBConnector}->insert(\@{$this->{ArrayInteraction}});
 	@{$this->{ArrayInteraction}}=();
-	print "[SUCCESS] dataset\n";
+	print "[SUCCESS] dataset\n" if ($main::verbose);
+}
+
+sub error_internet {
+	my ($this, $errors) = @_;
+	my %h = (1=>'Did not fine the information', 0=>'Did not access internet');
+	open (error, ">>error_internet.log");
+	foreach my $err (keys %{$errors}) {
+		print error "$err\t$h{$errors->{$err}}\n";
+	}
+	close error;
+	
+	
 }
 
 sub gene_name_to_uniprot_id () {
@@ -66,7 +79,7 @@ sub gene_name_to_uniprot_id () {
 	my $query = '"'.$first.'" AND organism:"'.$organism.'" AND reviewed:yes';
 	my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); 
 	
-	print "[DEBUG : DBPublic] http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml\n";
+	#print "[DEBUG : DBPublic] http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml\n";
 	return 0 if(! defined $file);
 
 	if ($file =~ /<accession>(\S+)<\/accession>/s) {
