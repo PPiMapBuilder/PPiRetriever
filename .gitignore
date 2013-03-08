@@ -1,5 +1,6 @@
 .DS_Store
 .settings/
+.metadata/
 DIP/
 BIOGRID/
 MINT/
@@ -9,3 +10,5 @@ HPRD/
 gene_name_to_uniprot_database.txt
 test.pl
 test_DBConnector.pl
+*.log
+launch.sh

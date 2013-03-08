@@ -7,7 +7,8 @@ use File::Copy;
 use Digest::MD5;
 use HTTP::Cookies;
 use LWP::UserAgent;
-use Archive::Extract;
+
+use Data::Dumper;
 
 use LWP::Simple; #Needed to use the function get
 
@@ -31,7 +32,10 @@ sub new {
 	return $this;               #Returning the blessed reference
 }
 
-
+sub getLength {
+	my ($this, $objet) = @_;
+	return $#{$this->{ArrayInteraction}};
+}
 sub addInteraction {
 	my ($this, $objet) = @_;
 	push (@{$this->{ArrayInteraction}}, $objet);
@@ -46,25 +50,29 @@ sub getInteraction {
 
 sub afficheTest {
 	my ($this) = @_;
-	print @{$this->{ArrayInteraction}}[0]->toString();
-	print @#{$this->{ArrayInteraction}}."\n";
+	print ${$this->{ArrayInteraction}}[0]->toString();
 }
 
 sub sendBDD {
 	my ($this) = @_;
-	$this->{DBConnector}->insert(\@{$this->{ArrayInterraction}});
-	@{$this->{ArrayInteraction}}=undef;
+	$this->{DBConnector}->insert(\@{$this->{ArrayInteraction}});
+	@{$this->{ArrayInteraction}}=();
+	print "[SUCCESS] dataset\n";
 }
 
 sub gene_name_to_uniprot_id () {
 	my ($this, $first, $organism) = @_;
 
-	my $query = $first.' AND organism:"'.$organism.'" AND reviewed:yes';
-	my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); die "Couldn't get it!" unless defined $file;
+	my $query = '"'.$first.'" AND organism:"'.$organism.'" AND reviewed:yes';
+	my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); 
+	
+	print "[DEBUG : DBPublic] http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml\n";
+	return 0 if(! defined $file);
 
 	if ($file =~ /<accession>(\S+)<\/accession>/s) {
 		return $1;
 	}
+	return 1;
 }
 
 
@@ -72,14 +80,13 @@ sub uniprot_id_to_gene_name() {
 	my ($this, $uniprot) = @_;
 	
 	my $file = get("http://www.uniprot.org/uniprot/".$uniprot.".xml");
-	die "Couldn't get it!" unless defined $file;
+	return 0 if(! defined $file);
+
 	
 	if ($file =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {
 		return $1;
 	}
-	else {
-		return "";
-	}
+	return 1;
 }
 
 
@@ -100,13 +107,13 @@ sub md5CheckFile ($$) {
 		print "File not found in md5 comparison!\n";
 		return -1;
 	}
-	return (($md5a cmp $md5b) == 0)?1:0;
+	return (($md5a cmp $md5b) == 0) ? 1 : 0;
 }
 
 
 #Uncompressing file given in parameter
 #	@return	=> 	 1	if succeded
-#			=>	-1	if failed
+#		=>	-1	if failed
 sub fileUncompressing ($$) {
 	my ($this) = @_;
 	no warnings 'numeric';
