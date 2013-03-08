@@ -74,10 +74,9 @@ sub parse {
 		my $uniprot_A = undef;
 		my $intB      = undef;
 		my $uniprot_B = undef;
-		my $exp_syst  = undef;
-		my $pubmed    = undef;
+		my @exp_syst  = undef;
+		my @pubmed    = undef;
 		my $origin    = undef;
-		my $pred      = undef;
 
 		my $orga_query;
 
@@ -95,26 +94,21 @@ sub parse {
 		} else {
 			$orga_query = "$hash_orga_tax{$origin} [$origin]";
 		}
-		
-		#my $internet = undef; # Temporary variable to see the number of request to the uniprot.org server
-		
-		#print $data[0]."\n";
+
 		$uniprot_A = $1 if ($data[0] =~ /^uniprotkb:(.+)$/);
 		next if (!$uniprot_A);
 		
 		$uniprot_B = $1 if ($data[1] =~ /uniprotkb:(.+)$/);
 		next if (!$uniprot_B);
 		
-
 		if ( exists( $hash_uniprot_id{$uniprot_A} ) )
 		{ # If the uniprot id has already been retrieved (and is now stored in the file)
 			$intA = $hash_uniprot_id{$uniprot_A};    # we retrieve it from the file
 		}
 		else {                    # If we need to retrieve it from the web
-			print $uniprot_A;
 			$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
 			                   # We call the corresponding function
-			next if ( $intA == 0 || $intA == -1 ); # If the gene was not retrieved, we do not keep the interaction
+			next if ( $intA eq '0' || $intA eq '1' ); # If the gene was not retrieved, we do not keep the interaction
 
 			$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
@@ -129,32 +123,18 @@ sub parse {
 		else {                    # If we need to retrieve it from the web
 			$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
 			                   # We call the corresponding function
-			next if ( $intB == 0 || $intB == -1 );
+			next if ( $intB eq '0' || $intB eq '1' );
 
 			$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
 			 #$internet .= 'i'; # We indicate that we used an internet connection
 		}
 		
-		print "$intA\t$uniprot_A\n$intB\t$uniprot_B\n";
-		exit;
-		my @sys_exp = undef;
-		my @temp_exp_syst = split (/\|/, $data[6]);
-		foreach $exp_syst (@temp_exp_syst) {
-			if ($exp_syst =~ /MI:\d+\((.+)\)/) {
-				push (@sys_exp, $1);
-				next;
-			}
-		} 
-		
-		my @pubmed = undef;
-		my @temp_pubmed = split(/\|/, $data[8]);
-		foreach $pubmed (@temp_pubmed) {
-			if ($pubmed =~ /pubmed:(\d+)/) {
-				push (@pubmed, $1);
-				next;
-			}
-		}
+	#	print "$intA\t$uniprot_A\n$intB\t$uniprot_B\n";
+		my @sys_exp = ($1) if ($data[11] =~ /\((.+)\)/);
+		#print "$sys_exp[0]\n";
+	
+		@pubmed = ($1) if ($data[8] =~ /pubmed:(\d+)/);
 
 		# Construction of the interaction elements
 		my @A = ( $uniprot_A, $intA );
@@ -165,9 +145,14 @@ sub parse {
 		  Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
 
 		$this->SUPER::addInteraction($interaction);
-
-		#print "$i $internet\t$intA\t$uniprot_A\t$intB\t$uniprot_B\t$exp_syst\t$origin\t$database\t$pubmed\t$pred\n"; # Input for debug
 		
+				
+		if ($this->SUPER::getLength()>=49) {
+			close gene_name_to_uniprot_file;
+			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
+			$this->SUPER::sendBDD();
+
+		}
 		$i++;
 
 	}
