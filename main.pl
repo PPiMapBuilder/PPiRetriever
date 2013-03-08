@@ -1,12 +1,33 @@
 package main;
 use strict; 
 use Launch;
+use Getopt::Long;
 
-our $verbose = $ARGV[0];
+my $help;
 
-my $launch = Launch->new("$ARGV[1]");
+my $parse;
+my $host;
+my $port;
+my $database;
+my $user;
+my $password;
+my $debug = undef;
 
-$launch->execute();
+our $verbose;
+
+  my $result = GetOptions ("parse=s" => \$parse, 
+  						"host=s" => \$host,
+  						"port=i" => \$port,
+  						"database=s" => \$database,
+  						"user=s" => \$user,
+  						"password=s" => \$password,
+  						"debug:i" => \$debug,
+                        "help"   => \$help,    
+						"verbose"  => \$verbose); 
+
+my $launch = Launch->new($host, $port, $database, $user, $password);
+
+$launch->execute(lc($parse), $debug);
 
 
 1;
