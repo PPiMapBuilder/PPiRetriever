@@ -168,6 +168,12 @@ sub parse {
 
 		$this->SUPER::addInteraction($interaction);
 
+		if ($this->SUPER::getLength()>=49) {
+			close gene_name_to_uniprot_file;
+			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
+			$this->SUPER::sendBDD();
+
+		}
 		#print "$i $internet\t$intA\t$uniprot_A\t$intB\t$uniprot_B\t$exp_syst\t$origin\t$database\t$pubmed\t$pred\n"; # Input for debug
 		
 		$i++;
