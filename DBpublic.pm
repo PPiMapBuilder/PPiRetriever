@@ -25,7 +25,7 @@ sub new {
 	my ( $classe ) = @_;		#Sending arguments to constructor
 	my $this = {
  		"ArrayInteraction" => [],
- 		"DBConnector" => DBConnector->new("", "", "", "", "")
+ 		"DBConnector" => DBConnector->new("localhost", "5432", "ppimapbuilder", "ppimapbuilder", "ppimapbuilder")
 	};
 
 	bless( $this, $classe );	#Linking the reference to the class
