@@ -156,6 +156,7 @@ sub parse {
 
 		}
 		$i++;
+		print "[HPRD] $i : $uniprot_A - $intA\t$uniprot_B - $intB";
 		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
 
 	}
