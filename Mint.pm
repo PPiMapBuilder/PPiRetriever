@@ -18,8 +18,8 @@ our @ISA = ("DBpublic");
 
 
 sub new {
-	my ($classe) = @_;                  #Sending arguments to constructor
-	my $this = $classe->SUPER::new();
+	my ($classe, $connector) = @_;                  #Sending arguments to constructor
+	my $this = $classe->SUPER::new($connector);
 	bless( $this, $classe );            #Linking the reference to the class
 	return $this;                       #Returning the blessed reference
 }
@@ -45,15 +45,16 @@ sub parse {
 
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
-	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );    # A file to keep this hash
-	while (<gene_name_to_uniprot_file>)
-	{      # We initialize the hash with the data contained in the file
-		chomp($_);
-		my @convertion_data = split( /\t/, $_ );
-		$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
-		  $convertion_data[1];
-	}
-	close(gene_name_to_uniprot_file);
+	 if (-f "gene_name_to_uniprot_database.txt")   {
+	 	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );
+	 	while (<gene_name_to_uniprot_file>) {      # We initialize the hash with the data contained in the file
+			chomp($_);
+			my @convertion_data = split( /\t/, $_ );
+			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
+		  	$convertion_data[1];
+		}
+		close(gene_name_to_uniprot_file);
+	 }   
 
 	open( data_file, $adresse );    # We open the database file
 	my $database = 'Mint';  # We note the corresponding database we are using
@@ -103,6 +104,7 @@ sub parse {
 		}
 		else { # If we need to retrieve it from the web
 			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
+			next if ($uniprot_A eq "1" || $uniprot_A eq "0"); 
 			$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
 			#$internet .= 'i'; # We indicate that we used an internet connection
@@ -116,6 +118,7 @@ sub parse {
 		}
 		else {
 			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
+			next if ($uniprot_B eq "1" || $uniprot_B eq "0"); 
 			$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
 			# $internet .= 'i';
@@ -139,9 +142,15 @@ sub parse {
 
 		$this->SUPER::addInteraction($interaction);
 
-		#print "$i $internet\t$intA\t$uniprot_A\t$intB\t$uniprot_B\t$exp_syst\t$origin\t$database\t$pubmed\t$pred\n"; # Input for debug
+		if ($this->SUPER::getLength()>=49) {
+			close gene_name_to_uniprot_file;
+			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
+			$this->SUPER::sendBDD();
+
+		}
 
 		$i++;
+		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
 
 	}
 
