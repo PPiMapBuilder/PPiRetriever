@@ -43,7 +43,7 @@ sub parse {
 		'4896'  => 'Schizosaccharomyces pombe'
 	  );
 
-my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
+my %hash_error; #hash of error, retrieve of uniprot or gene name from internet; 
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
 	 if (-f "gene_name_to_uniprot_database.txt")   {
