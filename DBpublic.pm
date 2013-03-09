@@ -1,13 +1,22 @@
-ckage DBpublic;
+package DBpublic;   #Name for the package and for the class
 
-use stricti;
+use strict;      	#Variable declaration control
+
 use File::Copy;
 use Digest::MD5;
 use HTTP::Cookies;
 use LWP::UserAgent;
+
 use Archive::Extract;
+
+use Data::Dumper;
+
+use LWP::Simple; #Needed to use the function get
+
 use DBConnector;
-use WWW::Mechanize;
+
+	 use WWW::Mechanize;
+
 use Interaction;
 
 #Will contain an array of 10 interaction objects
@@ -36,10 +45,12 @@ sub addInteraction {
 	push (@{$this->{ArrayInteraction}}, $objet);
 }
 
+
 sub getInteraction {
 	my($this, $x) = @_;
 	return @{$this->{ArrayInteraction}}[$x-1];
 }
+
 
 sub afficheTest {
 	my ($this) = @_;
@@ -48,9 +59,10 @@ sub afficheTest {
 
 sub sendBDD {
 	my ($this) = @_;
+	print "\n[STAND BY] dataset\n";
 	$this->{DBConnector}->insert(\@{$this->{ArrayInteraction}});
 	@{$this->{ArrayInteraction}}=();
-	print "[SUCCESS] dataset\n" if ($main::verbose);
+	print "[SUCCESS] dataset\n";
 }
 
 sub error_internet {
@@ -85,6 +97,7 @@ sub gene_name_to_uniprot_id () {
 	return 1;
 }
 
+
 sub uniprot_id_to_gene_name() {
 	my ($this, $uniprot) = @_;
 
@@ -106,6 +119,7 @@ sub uniprot_id_to_gene_name() {
 	return 1;
 }
 
+
 #Check if two files are identical (with MD5)
 #	@param	$file1	=>	Path to first file you want to test
 #	@param	$file2	=>	Path to second file you want to test
@@ -125,6 +139,7 @@ sub md5CheckFile ($$) {
 	}
 	return (($md5a cmp $md5b) == 0) ? 1 : 0;
 }
+
 
 #Uncompressing file given in parameter
 #	@return	=> 	 1	if succeded
@@ -164,11 +179,10 @@ sub fileUncompressing ($$) {
 	if(scalar(@uncompressedFiles) > 1) {
 		foreach(@uncompressedFiles) {
 			#print $_."\n";
-			if(uc($_) eq uc($pathUncompressedFile)) {
-				$pathUncompressedFile (case insentitive)
-				$uncompressedFile = $_;
+			if(uc($_) eq uc($pathUncompressedFile)) { 		#If this file has the same name as the one in $pathUncompressedFile (case insentitive)
+				$uncompressedFile = $_; 		#Saving this file
 			} else {
-				unlink($_);
+				unlink($_);						#Deleting others...
 			}
 		}
 
@@ -271,4 +285,3 @@ sub setUserAgent {
 }
 
 1;
-
