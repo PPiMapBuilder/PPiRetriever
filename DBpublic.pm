@@ -1,6 +1,6 @@
 ckage DBpublic;
 
-use stricti;
+use strict;
 use File::Copy;
 use Digest::MD5;
 use HTTP::Cookies;
