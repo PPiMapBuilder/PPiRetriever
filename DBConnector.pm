@@ -255,7 +255,7 @@ sub insert() {
 		#--- Insertion dans link_data_interaction ---#
 		foreach my $idInteractionData (@idInteractionData) {
 			
-	print "[DEBUG : DBConnector] idInteraction: $idInteraction :: idInteractionData: $idInteractionData\n";
+	print "[DEBUG : DBConnector] idInteraction: $idInteraction :: idInteractionData: $idInteractionData\n" if ($main::verbose);
 			eval {
 				$sth_insert_link_data_interaction->execute( $idInteraction, $idInteractionData );
 				$this->_commit();

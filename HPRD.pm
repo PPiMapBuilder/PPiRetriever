@@ -45,19 +45,21 @@ sub parse {
 	
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
-	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );    # A file to keep this hash
-	while (<gene_name_to_uniprot_file>)
-	{      # We initialize the hash with the data contained in the file
-		chomp($_);
-		my @convertion_data = split( /\t/, $_ );
-		$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
-		  $convertion_data[1];
-	}
+	if (-f "gene_name_to_uniprot_database.txt")   {
+	 	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );
+	 	while (<gene_name_to_uniprot_file>) {      # We initialize the hash with the data contained in the file
+			chomp($_);
+			my @convertion_data = split( /\t/, $_ );
+			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
+		  	$convertion_data[1];
+		}
+		close(gene_name_to_uniprot_file);
+	 }   
 	print "[DEBUG : HPRD] list of uniprot/gene has been load\n" if ($main::verbose);		
 	close(gene_name_to_uniprot_file);
 
 	open( data_file, $adresse );    # We open the database file
-	my $database = 'HPRD';  # We note the corresponding database we are using
+	my $database = 'hprd';  # We note the corresponding database we are using
 
 	my $i = 0;
 
@@ -146,6 +148,10 @@ sub parse {
 
 		$this->SUPER::addInteraction($interaction);
 
+		$i++;
+		print "[HPRD] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
+		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
+		
 		if ($this->SUPER::getLength()>=49) {
 			$this->SUPER::sendBDD();
 			close gene_name_to_uniprot_file;
@@ -155,14 +161,13 @@ sub parse {
 			
 
 		}
-		$i++;
-		print "[HPRD] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
-		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
+
 
 	}
 	$this->SUPER::sendBDD();
 	close gene_name_to_uniprot_file;
 	$this->SUPER::error_internet(\%hash_error);
+	close data_file;
 	
 }
 
