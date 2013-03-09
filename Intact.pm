@@ -43,16 +43,21 @@ sub parse {
 		'4896'  => 'Schizosaccharomyces pombe'
 	  );
 
+	my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
-	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );    # A file to keep this hash
-	while (<gene_name_to_uniprot_file>)
-	{      # We initialize the hash with the data contained in the file
-		chomp($_);
-		my @convertion_data = split( /\t/, $_ );
-		$hash_uniprot_id{ $convertion_data[1] } = $convertion_data[0];
-	}
-	close(gene_name_to_uniprot_file);
+	 if (-f "gene_name_to_uniprot_database.txt")   {
+	 	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );
+	 	while (<gene_name_to_uniprot_file>) {      # We initialize the hash with the data contained in the file
+			chomp($_);
+			my @convertion_data = split( /\t/, $_ );
+			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
+		  	$convertion_data[1];
+		}
+		close(gene_name_to_uniprot_file);
+	 }   
+	 print "[DEBUG : MINT] list of uniprot/gene has been load\n" if ($main::verbose);
+
 
 	open( data_file, $adresse );    # We open the database file
 	my $database = 'intact';  # We note the corresponding database we are using
@@ -62,6 +67,7 @@ sub parse {
 	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" )
 	  ; # During this time, we complete the file which contains the uniprot id for a gene name and an organism
 	while (<data_file>) {
+		print "\n---------------------------------------------------\n" if ($main::verbose);		
 
 		chomp($_);
 
@@ -93,23 +99,33 @@ sub parse {
 			next;
 		} else {
 			$orga_query = "$hash_orga_tax{$origin} [$origin]";
+			print "[DEBUG : DIP] Origin : $origin\n" if ($main::verbose);
 		}
 
 		$uniprot_A = $1 if ($data[0] =~ /^uniprotkb:(.+)$/);
 		next if (!$uniprot_A);
+		print "[DEBUG : DIP] uniprot A : $uniprot_A\n" if ($main::verbose);
+				
 		
 		$uniprot_B = $1 if ($data[1] =~ /uniprotkb:(.+)$/);
 		next if (!$uniprot_B);
+		print "[DEBUG : DIP] uniprot B : $uniprot_B\n" if ($main::verbose);
+		
 		
 		if ( exists( $hash_uniprot_id{$uniprot_A} ) )
 		{ # If the uniprot id has already been retrieved (and is now stored in the file)
 			$intA = $hash_uniprot_id{$uniprot_A};    # we retrieve it from the file
+			print "[DEBUG : DIP] gene name A : $intA retrieve from file\n" if ($main::verbose);
 		}
 		else {                    # If we need to retrieve it from the web
 			$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
-			                   # We call the corresponding function
-			next if ( $intA eq '0' || $intA eq '1' ); # If the gene was not retrieved, we do not keep the interaction
-
+			if ($intA eq "1" || $intA eq "0") {
+				$hash_error{$uniprot_A} = $intA;
+				print "[DEBUG : DIP] gene name A : error retrieving uniprot from internet\n" if ($main::verbose);		
+				next; 
+			} 
+			print "[DEBUG : DIP] gene name A : $intA retrieve from internet\n" if ($main::verbose);		
+			
 			$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
 			 #$internet .= 'i'; # We indicate that we used an internet connection
@@ -119,43 +135,56 @@ sub parse {
 		if ( exists( $hash_uniprot_id{$uniprot_B} ) )
 		{ # If the uniprot id has already been retrieved (and is now stored in the file)
 			$intB = $hash_uniprot_id{$uniprot_B};    # we retrieve it from the file
+			print "[DEBUG : DIP] gene name B : $intB retrieve from file\n" if ($main::verbose);
 		}
 		else {                    # If we need to retrieve it from the web
 			$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
-			                   # We call the corresponding function
-			next if ( $intB eq '0' || $intB eq '1' );
-
+			if ($intB eq "1" || $intB eq "0") {
+				$hash_error{$uniprot_B} = $intB;
+				print "[DEBUG : DIP] gene name B : error retrieving uniprot from internet\n" if ($main::verbose);		
+				next; 
+			} 
+			print "[DEBUG : DIP] gene name B : $intA retrieve from internet\n" if ($main::verbose);		
+		
 			$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
-			 #$internet .= 'i'; # We indicate that we used an internet connection
 		}
 		
-	#	print "$intA\t$uniprot_A\n$intB\t$uniprot_B\n";
 		my @sys_exp = ($1) if ($data[11] =~ /\((.+)\)/);
-		#print "$sys_exp[0]\n";
-	
+		print "[DEBUG : DIP] sys_exp retrieved\n" if ($main::verbose);
+		
 		@pubmed = ($1) if ($data[8] =~ /pubmed:(\d+)/);
-
+		print "[DEBUG : DIP] pubmed retrieved\n" if ($main::verbose);
+		
 		# Construction of the interaction elements
 		my @A = ( $uniprot_A, $intA );
 		my @B = ( $uniprot_B, $intB );
 
 		# Construction of the interaction object
-		my $interaction =
-		  Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
+		my $interaction = Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
 
 		$this->SUPER::addInteraction($interaction);
 		
-				
+		$i++;
+		print "[DIP] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
+		print "[DEBUG : DIP] Done : $i\n" if ($main::verbose); 
+		 
 		if ($this->SUPER::getLength()>=49) {
 			close gene_name_to_uniprot_file;
 			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
 			$this->SUPER::sendBDD();
+			$this->SUPER::error_internet(\%hash_error);
+			%hash_error = ();
+			
 
 		}
-		$i++;
+
 
 	}
+	$this->SUPER::sendBDD();
+	close gene_name_to_uniprot_file;
+	$this->SUPER::error_internet(\%hash_error);
+	close data_file;
 }
 
 
