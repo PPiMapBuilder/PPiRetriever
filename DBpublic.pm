@@ -15,6 +15,8 @@ use LWP::Simple; #Needed to use the function get
 
 use DBConnector;
 
+	 use WWW::Mechanize;
+
 use Interaction;
 
 #Will contain an array of 10 interaction objects
@@ -78,23 +80,17 @@ sub gene_name_to_uniprot_id () {
 	my ($this, $first, $organism) = @_;
 
 	my $query = '"'.$first.'" AND organism:"'.$organism.'" AND reviewed:yes';
+	my $uri = "http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml";
 	
-	my $ua = $this->setUserAgent();
-	my $res = $ua->get("http://www.uniprot.org/uniprot/",
-		[
-			"sort"		=> "score",
-			"format"	=> "xml",
-			"query"		=> $query
-		]
-	);
-	my $file = $res->content;
-
+    my $mech = WWW::Mechanize->new();
+	$mech->get( $uri);
+	
 	#my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); 
 	
 	#print "[DEBUG : DBPublic] http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml\n";
-	return 0 if(! defined $file);
+	return 0 if( $mech->content( format => 'text' ) eq "");
 
-	if ($file =~ /<accession>(\S+)<\/accession>/s) {
+	if ($mech->content( format => 'text' ) =~ /<accession>(\S+)<\/accession>/s) {
 		return $1;
 	}
 	return 1;
@@ -104,11 +100,19 @@ sub gene_name_to_uniprot_id () {
 sub uniprot_id_to_gene_name() {
 	my ($this, $uniprot) = @_;
 	
-	my $file = get("http://www.uniprot.org/uniprot/".$uniprot.".xml");
-	return 0 if(! defined $file);
+	my $uri = "http://www.uniprot.org/uniprot/".$uniprot.".xml";
+	
+    my $mech = WWW::Mechanize->new();
+	$mech->get( $uri);
+	
+	return 0 if( $mech->content( format => 'text' ) eq "");
 
 	
-	if ($file =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {
+	#my $file = get("http://www.uniprot.org/uniprot/".$uniprot.".xml");
+	return 0 if(  $mech->content( format => 'text' ) eq "");
+
+	
+	if ( $mech->content( format => 'text' ) =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {
 		return $1;
 	}
 	return 1;
