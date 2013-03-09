@@ -57,7 +57,7 @@ sub parse {
 	close(gene_name_to_uniprot_file);
 
 	open( data_file, $adresse );    # We open the database file
-	my $database = 'HPRD';  # We note the corresponding database we are using
+	my $database = 'hprd';  # We note the corresponding database we are using
 
 	my $i = 0;
 
