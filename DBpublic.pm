@@ -78,7 +78,18 @@ sub gene_name_to_uniprot_id () {
 	my ($this, $first, $organism) = @_;
 
 	my $query = '"'.$first.'" AND organism:"'.$organism.'" AND reviewed:yes';
-	my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); 
+	
+	my $ua = $this->setUserAgent();
+	my $res = $ua->get("http://www.uniprot.org/uniprot/",
+		[
+			"sort"		=> "score",
+			"format"	=> "xml",
+			"query"		=> $query
+		]
+	);
+	my $file = $res->content;
+
+	#my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); 
 	
 	#print "[DEBUG : DBPublic] http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml\n";
 	return 0 if(! defined $file);
