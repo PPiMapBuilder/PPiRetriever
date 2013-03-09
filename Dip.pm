@@ -57,7 +57,7 @@ sub parse {
 		}
 		close(gene_name_to_uniprot_file);
 	}
-	print "[DEBUG : HPRD] list of uniprot/gene has been load\n" if ($main::verbose);
+	print "[DEBUG : DIP] list of uniprot/gene has been load\n" if ($main::verbose);
 	open( data_file, $adresse );    # We open the database file
 	my $database = 'dip';  # We note the corresponding database we are using
 
