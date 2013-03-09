@@ -169,12 +169,18 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 			close gene_name_to_uniprot_file;
 			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
 			$this->SUPER::sendBDD();
+			$this->SUPER::error_internet(\%hash_error);
+			%hash_error = ();
+			
 
 		}
 
 
-
 	}
+	$this->SUPER::sendBDD();
+	close gene_name_to_uniprot_file;
+	$this->SUPER::error_internet(\%hash_error);
+	close data_file;
 
 }
 
