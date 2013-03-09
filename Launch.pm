@@ -5,6 +5,7 @@ use Biogrid;
 use Mint;
 use Dip;
 use Intact;
+use Bind;
 
 use DBConnector;
 
@@ -63,6 +64,16 @@ sub execute {
 						my ($path, $code) = $database->download();
 						if ($code == 1 || $code == -1) {
 							$database->parse($taille, $path);
+						}
+					}
+					else {
+						if ($db eq "bind") {
+							$database = Bind->new("ppimapbuilder\@gmail.com", "ppimapbuilder", $this->{DBconnector});
+							#my ($path, $code) = $database->download();
+							my $path = "BIND/Bind.txt"; my $code = 1;
+							if ($code == 1 || $code == -1) {
+								$database->parse($taille, $path);
+							}
 						}
 					}
 				}

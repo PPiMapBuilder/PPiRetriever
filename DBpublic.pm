@@ -59,9 +59,10 @@ sub afficheTest {
 
 sub sendBDD {
 	my ($this) = @_;
+	print "\n[STAND BY] dataset\n";
 	$this->{DBConnector}->insert(\@{$this->{ArrayInteraction}});
 	@{$this->{ArrayInteraction}}=();
-	print "[SUCCESS] dataset\n" if ($main::verbose);
+	print "\n[SUCCESS] dataset\n";
 }
 
 sub error_internet {
@@ -109,7 +110,6 @@ sub uniprot_id_to_gene_name() {
 
 	
 	#my $file = get("http://www.uniprot.org/uniprot/".$uniprot.".xml");
-	return 0 if(  $mech->content( format => 'text' ) eq "");
 
 	
 	if ( $mech->content( format => 'text' ) =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {

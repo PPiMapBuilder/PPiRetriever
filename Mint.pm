@@ -43,6 +43,7 @@ sub parse {
 		'4896'  => 'Schizosaccharomyces pombe'
 	  );
 
+my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
 	 if (-f "gene_name_to_uniprot_database.txt")   {
@@ -55,16 +56,17 @@ sub parse {
 		}
 		close(gene_name_to_uniprot_file);
 	 }   
+	 print "[DEBUG : MINT] list of uniprot/gene has been load\n" if ($main::verbose);
 
 	open( data_file, $adresse );    # We open the database file
-	my $database = 'Mint';  # We note the corresponding database we are using
+	my $database = 'mint';  # We note the corresponding database we are using
 
 	my $i = 0;
 
 	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" )
 	  ; # During this time, we complete the file which contains the uniprot id for a gene name and an organism
 	while (<data_file>) {
-
+		print "\n---------------------------------------------------\n" if ($main::verbose);
 		chomp($_);
 
 		next if ( $_ =~ m/^#/ig || $_ =~ /^ID/);
@@ -81,6 +83,7 @@ sub parse {
 		my $origin    = undef;
 		my $pred      = undef;
 
+
 		my $orga_query;
 
 		my @data = split( /\t/, $_ );    # We split the line into an array
@@ -94,42 +97,58 @@ sub parse {
 			next;
 		} else {
 			$orga_query = "$hash_orga_tax{$origin} [$origin]";
+			print "[DEBUG : MINT] Origin : $origin\n" if ($main::verbose);
 		}
 
 
 		$intA = $1 if ($data[0] =~ /entrezgene\/locuslink:(\d+)/); # We retrieve the first interactor
 		next if (!defined($intA));
+		print "[DEBUG : MINT] gene name A : $intA\n" if ($main::verbose);
+		
 		if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
 			$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query}; # we retrieve it from the file
+			print "[DEBUG : MINT] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
 		}
 		else { # If we need to retrieve it from the web
 			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
-			next if ($uniprot_A eq "1" || $uniprot_A eq "0"); 
+			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
+				$hash_error{$intA} = $uniprot_A;
+				print "[DEBUG : MINT] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
+				next; 
+			} 
+			print "[DEBUG : MINT] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
+			
 			$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
-			#$internet .= 'i'; # We indicate that we used an internet connection
 		}
 
 		# Same principle as above
 		$intB = $1 if ($data[1] =~ /entrezgene\/locuslink:(\d+)/);
 		next if (!defined($intB));
+		print "[DEBUG : MINT] gene name B : $intB\n" if ($main::verbose);
 		if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) ) {
 			$uniprot_B = $hash_uniprot_id{$intB}->{$orga_query};
+			print "[DEBUG : MINT] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
+			
 		}
 		else {
 			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
-			next if ($uniprot_B eq "1" || $uniprot_B eq "0"); 
+			if ($uniprot_B eq "1" || $uniprot_B eq "0") {
+				print "[DEBUG : MINT] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
+				$hash_error{$intB} = $uniprot_B;
+				next;
+			}
+			print "[DEBUG : MINT] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
 			$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
-			# $internet .= 'i';
-		}
-
-		if ( !defined($uniprot_A) || !defined($uniprot_B) ) { # If the uniprot id was not retrieved, we do not keep the interaction
-			next;
 		}
 		
+		
 		$exp_syst = $1 if($data[6]=~ /MI:\d+\((.+)\)$/);
+		print "[DEBUG : MINT] sys_exp retrieved\n" if ($main::verbose);
+		
 		$pubmed   = $1 if ($data[8] =~ /pubmed:(\d+)/); # We retrieve the pubmed id
+		print "[DEBUG : MINT] pubmed retrieved\n" if ($main::verbose);
 
 		# Construction of the interaction elements
 		my @A = ( $uniprot_A, $intA );
@@ -150,7 +169,8 @@ sub parse {
 		}
 
 		$i++;
-		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
+		print "[MINT] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
+		print "[DEBUG : MINT] Done : $i\n" if ($main::verbose);  
 
 	}
 
