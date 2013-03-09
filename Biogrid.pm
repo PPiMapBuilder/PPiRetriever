@@ -45,7 +45,8 @@ sub parse {
 				# This avoid to run the same request several times in the uniprot.org server
 		
 	print "[DEBUG : Biogrid] loading gene name/uniprot file\n";		
-	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );  # A file to keep this hash
+	
+	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
 	while (<gene_name_to_uniprot_file>) { # We initialize the hash with the data contained in the file
 		chomp($_);
 		my @convertion_data = split( /\t/, $_ );
@@ -54,8 +55,8 @@ sub parse {
 	}
 	close(gene_name_to_uniprot_file);
 	print "[DEBUG : Biogrid] loaded.\n";
-
-	open( data_file, $adresse ); # We open the database file
+print "--> will open $adresse \n";
+	open( data_file, $adresse ) or die "T'es mauvais Jack!"; # We open the database file
 	my $database = 'biogrid'; # We note the corresponding database we are using
 
 	my $i = 0;

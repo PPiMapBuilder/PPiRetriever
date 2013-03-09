@@ -20,9 +20,11 @@ sub new {
 }
 
 sub execute {
-	my ($this, $db, $taille) = @_;
+	my ($this, $db, $taille, $path) = @_;
 	$taille = defined($taille) ? $taille : -1;
-	
+
+	die "no path given" unless ($path);
+
 	my $database;
 	
 	if ($db eq "hprd") {
@@ -36,7 +38,9 @@ sub execute {
 	else {
 		if ($db eq "biogrid") {
 			$database = Biogrid->new($this->{DBconnector});
-			my ($path, $code) = $database->download();
+		#	my ($path, $code) = $database->download();
+			my $code = 1; # VIRER CETTE MERDE ASAP
+
 			if ($code == 1 || $code == -1) {
 				$database->parse($taille, $path);
 			}

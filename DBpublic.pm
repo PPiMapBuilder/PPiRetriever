@@ -15,6 +15,8 @@ use LWP::Simple; #Needed to use the function get
 
 use DBConnector;
 
+	 use WWW::Mechanize;
+
 use Interaction;
 
 #Will contain an array of 10 interaction objects
@@ -70,20 +72,25 @@ sub error_internet {
 		print error "$err\t$h{$errors->{$err}}\n";
 	}
 	close error;
-	
-	
+
+
 }
 
 sub gene_name_to_uniprot_id () {
 	my ($this, $first, $organism) = @_;
 
 	my $query = '"'.$first.'" AND organism:"'.$organism.'" AND reviewed:yes';
-	my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); 
-	
-	#print "[DEBUG : DBPublic] http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml\n";
-	return 0 if(! defined $file);
+	my $uri = "http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml";
 
-	if ($file =~ /<accession>(\S+)<\/accession>/s) {
+    my $mech = WWW::Mechanize->new();
+	$mech->get( $uri);
+
+	#my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); 
+
+	#print "[DEBUG : DBPublic] http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml\n";
+	return 0 if( $mech->content( format => 'text' ) eq "");
+
+	if ($mech->content( format => 'text' ) =~ /<accession>(\S+)<\/accession>/s) {
 		return $1;
 	}
 	return 1;
@@ -92,12 +99,20 @@ sub gene_name_to_uniprot_id () {
 
 sub uniprot_id_to_gene_name() {
 	my ($this, $uniprot) = @_;
-	
-	my $file = get("http://www.uniprot.org/uniprot/".$uniprot.".xml");
-	return 0 if(! defined $file);
 
-	
-	if ($file =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {
+	my $uri = "http://www.uniprot.org/uniprot/".$uniprot.".xml";
+
+    my $mech = WWW::Mechanize->new();
+	$mech->get( $uri);
+
+	return 0 if( $mech->content( format => 'text' ) eq "");
+
+
+	#my $file = get("http://www.uniprot.org/uniprot/".$uniprot.".xml");
+	return 0 if(  $mech->content( format => 'text' ) eq "");
+
+
+	if ( $mech->content( format => 'text' ) =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {
 		return $1;
 	}
 	return 1;
@@ -131,23 +146,23 @@ sub md5CheckFile ($$) {
 sub fileUncompressing ($$) {
 	my ($this) = @_;
 	no warnings 'numeric';
-	
+
 	#Function arguments
 	my $pathCompressedFile = $_[1];
 	my $pathUncompressedFile = $_[2];
-	
+
 	#Extracting folder path from $pathCompressedFile
 	my @pathInfo = $this->extractPathInfo($pathCompressedFile);
 	my $folder = $pathInfo[0];
 	return -1 if($folder == -1);
-	
+
 	#Uncompressing $pathCompressedFile in $folder
 	my $ae = Archive::Extract->new(archive => $pathCompressedFile);
 	my $ok = $ae->extract(to => $folder);
-	
+
 	#Uncompressing failed
 	return -1 if(!$ok);
-	
+
 	#Getting the .txt file extracted
 	my @files = @{($ae->files)};
 	my @uncompressedFiles;
@@ -158,7 +173,7 @@ sub fileUncompressing ($$) {
 			unlink($folder.$_); # deleting other files
 		}
 	}
-	
+
 	my $uncompressedFile = "";
 	if(scalar(@uncompressedFiles) > 1) {
 		foreach(@uncompressedFiles) {
@@ -169,16 +184,16 @@ sub fileUncompressing ($$) {
 				unlink($_);						#Deleting others...
 			}
 		}
-		
+
 		#Failed to select correct txt file from the one extracted
 		return -1 if($uncompressedFile eq "");
 	} else {
 		$uncompressedFile = $uncompressedFiles[0];
 	}
-	
+
 	#Renaming the uncompressed file as $pathUncompressedFile
 	move $uncompressedFile, $pathUncompressedFile or return -1;
-	
+
 	#Ok if $pathUncompressedFile does exists
 	return (-e $pathUncompressedFile) ? $pathUncompressedFile : -1;
 }
@@ -212,7 +227,7 @@ sub setDownloadFolder($) {
 #			=>	 1 Version in $file and $newVersion are different
 sub checkVersion ($$) {
 	my ($this, $file, $newVersion) = @_;
-	
+
 	#Creating file if doesn't exists
 	unless(-e $file) {
 		unless(open F, ">".$file) {
@@ -222,12 +237,12 @@ sub checkVersion ($$) {
 		print F "";
 		close(F)
 	}
-	
+
 	#Opening version file
 	open( VERSION, '+<', $file ) || die "Cannot open version file";
-	
+
 	my $current = do { local $/; <VERSION> };
-	
+
 	no warnings 'numeric';
 	if ( int($newVersion) == int($current) && $current != "" ) {
 		print("No need for update.\n");
@@ -236,7 +251,7 @@ sub checkVersion ($$) {
 		seek(VERSION, 0, 0);
 		print VERSION $newVersion;    #Saving the new date to version.txt
 	}
-	
+
 	close(VERSION);
 	return 1;
 }
@@ -248,7 +263,7 @@ sub checkVersion ($$) {
 #	@return	=>	The extension of the file (if there is any)
 sub extractPathInfo ($) {
 	my $path = $_[1];
-	
+
 	if($path =~ /^\/?(.+\/)*([0-9a-zA-Z_-]+)((\.\w+)*)$/) { 
 		return ($1, $2, $3);
 	} else {
@@ -270,4 +285,3 @@ sub setUserAgent {
 
 1;
 
-	
