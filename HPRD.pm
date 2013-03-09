@@ -148,6 +148,10 @@ sub parse {
 
 		$this->SUPER::addInteraction($interaction);
 
+		$i++;
+		print "[HPRD] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
+		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
+		
 		if ($this->SUPER::getLength()>=49) {
 			$this->SUPER::sendBDD();
 			close gene_name_to_uniprot_file;
@@ -157,9 +161,7 @@ sub parse {
 			
 
 		}
-		$i++;
-		print "[HPRD] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
-		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
+
 
 	}
 	$this->SUPER::sendBDD();

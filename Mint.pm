@@ -160,7 +160,11 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 		my $interaction = Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
 
 		$this->SUPER::addInteraction($interaction);
-
+		
+		$i++;
+		print "[MINT] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
+		print "[DEBUG : MINT] Done : $i\n" if ($main::verbose); 
+		 
 		if ($this->SUPER::getLength()>=49) {
 			close gene_name_to_uniprot_file;
 			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
@@ -168,9 +172,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 
 		}
 
-		$i++;
-		print "[MINT] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
-		print "[DEBUG : MINT] Done : $i\n" if ($main::verbose);  
+
 
 	}
 
