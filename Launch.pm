@@ -23,8 +23,7 @@ sub new {
 sub execute {
 	my ($this, $db, $taille, $path) = @_;
 	$taille = defined($taille) ? $taille : -1;
-
-	die "no path given" unless ($path);
+	$path =defined($path) ? $path : "";
 
 	my $database;
 	

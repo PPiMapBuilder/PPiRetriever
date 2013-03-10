@@ -45,7 +45,7 @@ sub parse {
 		'4932'  => 'Saccharomyces cerevisiae',
 		'4896'  => 'Schizosaccharomyces pombe'
 	  );
-
+	my %hash_error;
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
 	if (-f "gene_name_to_uniprot_database.txt")   {

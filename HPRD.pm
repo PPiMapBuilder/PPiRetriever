@@ -92,6 +92,7 @@ sub parse {
 		$orga_query = "$hash_orga_tax{$origin} [$origin]";
 
 		$intA = $data[0]; # We retrieve the first interactor
+		next if ($intA eq "-");
 		print "[DEBUG : HPRD] gene name A : $intA\n" if ($main::verbose);		
 
 		if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
@@ -114,6 +115,8 @@ sub parse {
 
 		# Same principle as above
 		$intB = $data[3];
+		next if ($intB eq "-");
+
 		print "[DEBUG : HPRD] gene name B : $intB\n" if ($main::verbose);
 		if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) ) {
 			$uniprot_B = $hash_uniprot_id{$intB}->{$orga_query};

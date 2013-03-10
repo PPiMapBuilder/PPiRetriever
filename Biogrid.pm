@@ -22,6 +22,11 @@ sub new {
 	return $this;                       #Returning the blessed reference
 }
 
+sub parse_all {
+	my ($this, $path, $stop) = @_;
+	$this->parse($stop, $_) foreach (glob($path."/biogrid*"));	
+}
+
 sub parse {
 
 	my ( $this, $stop, $adresse ) = @_;
@@ -29,7 +34,7 @@ sub parse {
 	$stop = defined($stop) ? $stop : -1;
 	$adresse ||=1;
 	
-	print "[DEBUG : Biogrid] Start parsing\n";
+	print "[DEBUG : Biogrid] Start parsing\n" if ($main::verbose);
 	
 	my %hash_orga_tax = ( # Hash to easily retrieve the correspondance between the taxonomy id and the seven reference organisms
 		'3702'  => 'Arabidopsis thaliana',
@@ -44,7 +49,7 @@ sub parse {
 	my $hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 				# This avoid to run the same request several times in the uniprot.org server
 		
-	print "[DEBUG : Biogrid] loading gene name/uniprot file\n";		
+	print "[DEBUG : Biogrid] loading gene name/uniprot file\n" if ($main::verbose);		
 	
 	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
 	while (<gene_name_to_uniprot_file>) { # We initialize the hash with the data contained in the file
@@ -54,14 +59,14 @@ sub parse {
 		  $convertion_data[1];
 	}
 	close(gene_name_to_uniprot_file);
-	print "[DEBUG : Biogrid] loaded.\n";
-print "--> will open $adresse \n";
-	open( data_file, $adresse ) or die "T'es mauvais Jack!"; # We open the database file
+	print "[DEBUG : Biogrid] loaded.\n" if ($main::verbose);
+	print "--> will open $adresse \n";
+	open( data_file, $adresse ); # We open the database file
 	my $database = 'biogrid'; # We note the corresponding database we are using
 
 	my $i = 0;
 
-	print "[DEBUG : Biogrid] reading biogrid file\n";
+	print "[DEBUG : Biogrid] reading biogrid file\n" if ($main::verbose);
 	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" ); # During this time, we complete the file which contains the uniprot id for a gene name and an organism
 	while (<data_file>) {
 
@@ -82,8 +87,8 @@ print "--> will open $adresse \n";
 
 		my $orga_query;
 
-print "-------------------------------------\n";
-print "[DEBUG : Biogrid] line: ",$. ,"\n";
+print "-------------------------------------\n" if ($main::verbose);
+print "[DEBUG : Biogrid] line: ",$. ,"\n" if ($main::verbose);
 
 
 		my @data = split( /\t/, $_ ); # We split the line into an array
@@ -92,18 +97,18 @@ print "[DEBUG : Biogrid] line: ",$. ,"\n";
 
 
 		if ( !$origin ) { # If the origin is null, so if the interaction is not from one of the seven organisms, we do not consider this interaction
-print "[DEBUG : Biogrid] origin not defined, next\n";
+print "[DEBUG : Biogrid] origin not defined, next\n" if ($main::verbose);
 			next;
 		} else {
-				print "[DEBUG : Biogrid] origin: $origin\n";	
+				print "[DEBUG : Biogrid] origin: $origin\n" if ($main::verbose);	
 		}
 
 		$orga_query = "$hash_orga_tax{$origin} [$origin]";
-print "[DEBUG : Biogrid] orga_query: $orga_query\n";
+print "[DEBUG : Biogrid] orga_query: $orga_query\n" if ($main::verbose);
 		#my $internet = undef; # Temporary variable to see the number of request to the uniprot.org server
 
 		$intA = $data[7]; # We retrieve the first interactor
-print "[DEBUG : Biogrid] intA: $intA\n";
+print "[DEBUG : Biogrid] intA: $intA\n" if ($main::verbose);
 		if (exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
 			$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
 print "[DEBUG : Biogrid] uniprotA: $uniprot_A\n";
