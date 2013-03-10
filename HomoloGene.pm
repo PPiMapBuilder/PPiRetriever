@@ -1,8 +1,8 @@
-package HPRD;
+package HomoloGene;
 
-use warnings;    #Activate all warnings 
+
 use strict;      #Variable declaration control
-use Carp;        #Additionnal user warnings
+
 
 use DBpublic;
 use Interaction;
@@ -25,9 +25,8 @@ sub new {
 
 sub parse {
 
-	my ( $this, $stop, $adresse ) = @_;
+	my ( $this, $adresse ) = @_;
 
-	$stop = defined($stop) ? $stop : -1;
 	$adresse ||=1;
 
 	my %hash_orga_tax =
@@ -42,7 +41,7 @@ sub parse {
 	  );
 
 	my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
-	
+	my @arrayHomo = ();
 	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
 	if (-f "gene_name_to_uniprot_database.txt")   {
@@ -50,16 +49,16 @@ sub parse {
 	 	while (<gene_name_to_uniprot_file>) {      # We initialize the hash with the data contained in the file
 			chomp($_);
 			my @convertion_data = split( /\t/, $_ );
-			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
+			%hash_uniprot_id->{ $convertion_data[0] }->{ $convertion_data[2] } =
 		  	$convertion_data[1];
 		}
 		close(gene_name_to_uniprot_file);
 	 }   
-	print "[DEBUG : HPRD] list of uniprot/gene has been load\n" if ($main::verbose);		
+	print "[DEBUG : HOMOLOGENE] list of uniprot/gene has been load\n" if ($main::verbose);		
 	close(gene_name_to_uniprot_file);
 
 	open( data_file, $adresse );    # We open the database file
-	my $database = 'hprd';  # We note the corresponding database we are using
+	my $database = 'HOMOLOGENE';  # We note the corresponding database we are using
 
 	my $i = 0;
 
@@ -73,90 +72,50 @@ sub parse {
 		next if ( $_ =~ m/^#/ig || $_ =~ /^ID/);
 		
 
-		last if ( $i == $stop );
-
 		my $intA      = undef;
 		my $uniprot_A = undef;
-		my $intB      = undef;
-		my $uniprot_B = undef;
-		my $exp_syst  = undef;
-		my $pubmed    = undef;
 		my $origin    = undef;
 
 		my $orga_query;
+		
 
 		my @data = split( /\t/, $_ );    # We split the line into an array
 		#foreach my $plop (@data) {print $plop."\t";}exit;
+		my $hid = $data[0];
 		
-		$origin = "9606";
+		$origin = $data[1];
 		$orga_query = "$hash_orga_tax{$origin} [$origin]";
 
-		$intA = $data[0]; # We retrieve the first interactor
+		$intA = $data[3]; # We retrieve the first interactor
 		next if ($intA eq "-");
-		print "[DEBUG : HPRD] gene name A : $intA\n" if ($main::verbose);		
+		print "[DEBUG : HOMOLOGENE] gene name A : $intA\n" if ($main::verbose);		
 
 		if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
-			$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query}; # we retrieve it from the file
-			print "[DEBUG : HPRD] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);		
+			$uniprot_A = %hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
+			print "[DEBUG : HOMOLOGENE] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);		
 			
 		}
 		else { # If we need to retrieve it from the web
 			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
 			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
 				$hash_error{$intA} = $uniprot_A;
-				print "[DEBUG : HPRD] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
+				print "[DEBUG : HOMOLOGENE] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
 				next; 
 			} 
-			print "[DEBUG : HPRD] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
+			print "[DEBUG : HOMOLOGENE] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
 			
-			$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
+			%hash_uniprot_id->{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
 		}
 
-		# Same principle as above
-		$intB = $data[3];
-		next if ($intB eq "-");
-
-		print "[DEBUG : HPRD] gene name B : $intB\n" if ($main::verbose);
-		if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) ) {
-			$uniprot_B = $hash_uniprot_id{$intB}->{$orga_query};
-			print "[DEBUG : HPRD] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
-			
-		}
-		else {
-			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
-			if ($uniprot_B eq "1" || $uniprot_B eq "0") {
-				print "[DEBUG : HPRD] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
-				$hash_error{$intB} = $uniprot_B;
-				next;
-			}
-			print "[DEBUG : HPRD] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
-			$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
-			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
-		}
-		
-		my @sys_exp = split( /;/,$data[6]);
-		print "[DEBUG : HPRD] sys_exp retrieved\n" if ($main::verbose);
-		
-		my @pubmed  = split ( /,/, $data[7]);
-		print "[DEBUG : HPRD] pubmed retrieved\n" if ($main::verbose);
-		
-		# Construction of the interaction elements
-		my @A = ( $uniprot_A, $intA );
-		my @B = ( $uniprot_B, $intB );
-
-
-		# Construction of the interaction object
-		my $interaction = Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
-
-		$this->SUPER::addInteraction($interaction);
-
+		push (@arrayHomo, ($uniprot_A, $intA, $hid));
+		 
 		$i++;
-		print "[HPRD] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
-		print "[DEBUG : HPRD] Done : $i\n" if ($main::verbose); 
+		print "[HOMOLOGENE] $i : uniprot A : $uniprot_A - gene name A :$intA\t$hid\n" if (! $main::verbose);
+		print "[DEBUG : HOMOLOGENE] Done : $i\n" if ($main::verbose); 
 		
-		if ($this->SUPER::getLength()>=49) {
-			$this->SUPER::sendBDD();
+		if ($#arrayHomo>=49) {
+			$this->SUPER::sendBDD(\@arrayHomo);
 			close gene_name_to_uniprot_file;
 			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
 			$this->SUPER::error_internet(\%hash_error);
@@ -167,15 +126,15 @@ sub parse {
 
 
 	}
-	$this->SUPER::sendBDD();
+	$this->SUPER::sendBDD(\@arrayHomo);
 	close gene_name_to_uniprot_file;
 	$this->SUPER::error_internet(\%hash_error);
 	close data_file;
-	print "\nEOF\n";	
+	
 }
 
 
-#Download and uncompress HPRD data file
+#Download and uncompress HOMOLOGENE data file
 #	@return => the file path to .txt file
 #			=> the sucess/failure code
 #				 1  Sucess: New version found and downloaded			
@@ -193,7 +152,7 @@ sub download {
 	#Setting folder failed
 	return ("", -3) if(int($folder) == -1);
 	
-	my $fileUncompressed = $folder."HPRD.txt";
+	my $fileUncompressed = $folder."HOMOLOGENE.txt";
 	
 	#Preparing the user agent and the cookie storage
 	my $ua = $this->setUserAgent();
@@ -201,7 +160,7 @@ sub download {
 	#Getting the download page (with multiple attempt)
 	my $download_page = "";
 	my $attempt = 1;
-	until ( $download_page =~ /.*(HPRD_Release\d+_(\d+))\.tar\.gz.*/m ) {
+	until ( $download_page =~ /.*(HOMOLOGENE_Release\d+_(\d+))\.tar\.gz.*/m ) {
 		#No more attempt left
 		return ("", -2) if ($attempt > 3);
 
@@ -210,19 +169,19 @@ sub download {
 		print("\n");
 		 
 		#Getting download page
-		$download_page =  ($ua->get("http://www.hprd.org/download"))->content;
+		$download_page =  ($ua->get("http://www.HOMOLOGENE.org/download"))->content;
 
 		#print($download_page);
 		$attempt++;
 	}
 
 	#Searching first HTTP link to a .txt.gz file
-	if ( $download_page =~ /.*(HPRD_Release\d+_(\d+))\.tar\.gz.*/m ) {
-		my $dataFile = "http://www.hprd.org/edownload/" . $1;
+	if ( $download_page =~ /.*(HOMOLOGENE_Release\d+_(\d+))\.tar\.gz.*/m ) {
+		my $dataFile = "http://www.HOMOLOGENE.org/edownload/" . $1;
 		my $lastestVersion = $2;
 		
 		print("Checking release date...\n");
-		#Example: HPRD_Release9_041310.tar.gz (extracting the "041310")
+		#Example: HOMOLOGENE_Release9_041310.tar.gz (extracting the "041310")
 		return ($fileUncompressed, -1) if $this->checkVersion($folder."version.txt", $lastestVersion) == -1;  # No need for update, No need for download
 		
 		print("Downloading ".__PACKAGE__." data...\n");
@@ -233,7 +192,7 @@ sub download {
 		my $oldFile = $folder."old-".$saveFile;
 		move($savePath, $oldFile) if (-e $savePath);
 
-		#Downloading the latest version in HPRD
+		#Downloading the latest version in HOMOLOGENE
 		$ua->show_progress('true value');
 		my $res = $ua->get( $dataFile, ':content_file' => $savePath );
 		
@@ -264,12 +223,12 @@ sub download {
 		}
 		else {
 			print("Download failed.\n");
-			return ("", -2);    #No data recieved from HPRD
+			return ("", -2);    #No data recieved from HOMOLOGENE
 		}
 	}
 	else {
 		print("Download failed.\n");
-		return ("", -2);    #No data recieved from HPRD
+		return ("", -2);    #No data recieved from HOMOLOGENE
 	}
 }
 

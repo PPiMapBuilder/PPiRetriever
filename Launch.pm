@@ -7,6 +7,8 @@ use Dip;
 use Intact;
 use Bind;
 
+use HomoloGene;
+
 use DBConnector;
 
 sub new {
@@ -17,6 +19,7 @@ sub new {
 		  DBConnector->new( $host, $port, $database, $user, $passwd )
 	  };
 
+	die "plop" unless ($this->{DBConnector});
 	bless( $this, $classe );    #Linking the reference to the class
 	return $this;               #Returning the blessed reference
 }
@@ -80,6 +83,10 @@ sub execute {
 		if ( $code == 1 || $code == -1 ) {
 			$database->parse( $taille, $path );
 		}
+	}
+	elsif ( $db eq "homologene" ) {
+		$database = HomoloGene->new( $this->{DBconnector} );
+		$database->parse("homologene.data.txt");
 	}
 	else {
 		$this->help();

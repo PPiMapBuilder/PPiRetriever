@@ -1,8 +1,6 @@
 package Bind;
 
-use warnings;    #Activate all warnings
 use strict;      #Variable declaration control
-use Carp;        #Additionnal user warnings
 
 use DBpublic;
 use Interaction;
@@ -85,7 +83,7 @@ sub parse {
 	my @A;
 	my @B;
 
-	my $good;
+	my $good = 1;
 
 	my $orga_query;
 
@@ -104,14 +102,13 @@ sub parse {
 					  Interaction->new( \@A, \@B, $orgaA, $database, \@pubmed,
 						\@sys_exp );
 					$this->SUPER::addInteraction($interaction);
-					print
-"[BIND] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n"
+					print "[BIND] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n"
 					  if ( !$main::verbose );
 					  print "[DEBUG : BIND] Done : $i\n--------------------------------------------\n" if ($main::verbose);
 
 				}
 
-				if ( $this->SUPER::getLength() >= 49 ) {
+				if ( $this->SUPER::getLength() >= 29 ) {
 					$this->SUPER::sendBDD();
 					close gene_name_to_uniprot_file;
 					open( gene_name_to_uniprot_file,
@@ -149,9 +146,11 @@ sub parse {
 				next;
 			}
 
-			if ( $_ =~ /^.SHLABEL\s(.+)$/ && $good == 1 ) {
+			if ( $_ =~ /^.SHLABEL\s?(\S+)$/ && $good == 1 ) {
+				$good = 0 if ($1 eq "");
 				$intA = $1 if ( $prot eq "A" );
 				$intB = $1 if ( $prot eq "B" );
+				$good = 0 if (($prot eq "A" && $intA eq "") || ($prot eq "B" && $intB eq ""));
 				next;
 			}
 
@@ -175,23 +174,17 @@ sub parse {
 
 					if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) )
 					{ # If the uniprot id has already been retrieved (and is now stored in the file)
-						$uniprot_A =
-						  $hash_uniprot_id{$intA}
-						  ->{$orga_query};    # we retrieve it from the file
-						print
-"[DEBUG : BIND] uniprot A : $uniprot_A retrieve from file\n"
-						  if ($main::verbose);
+						$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query};    # we retrieve it from the file
+						print"[DEBUG : BIND] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
 
 					}
 					else {    # If we need to retrieve it from the web
-						$uniprot_A =
-						  $this->gene_name_to_uniprot_id( $intA, $orga_query )
+						$uniprot_A =  $this->SUPER::gene_name_to_uniprot_id( $intA, $orga_query )
 						  ;    # We call the corresponding function
 
 						if ( $uniprot_A eq "1" || $uniprot_A eq "0" ) {
 							$hash_error{$intA} = $uniprot_A;
-							print
-"[DEBUG : BIND] uniprot A : error retrieving uniprot from internet\n"
+							print"[DEBUG : BIND] uniprot A : error retrieving uniprot from internet\n"
 							  if ($main::verbose);
 							$good = 0;
 							next;
@@ -205,11 +198,8 @@ sub parse {
 
 					if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) )
 					{ # If the uniprot id has already been retrieved (and is now stored in the file)
-						$uniprot_B =
-						  $hash_uniprot_id{$intB}
-						  ->{$orga_query};    # we retrieve it from the file
-						print
-"[DEBUG : BIND] uniprot A : $uniprot_A retrieve from file\n"
+						$uniprot_B =  $hash_uniprot_id{$intB}->{$orga_query};    # we retrieve it from the file
+						print"[DEBUG : BIND] uniprot A : $uniprot_A retrieve from file\n"
 						  if ($main::verbose);
 
 					}
@@ -253,6 +243,7 @@ sub parse {
 	close gene_name_to_uniprot_file;
 	$this->SUPER::error_internet( \%hash_error );
 	close data_file;
+	print "\nEOF\n";
 
 }
 
