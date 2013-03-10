@@ -58,7 +58,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 
 	my %hash_locusGene;
 	if (-f "locus_to_gene_name.txt") {
-		open ( locus_to_gene_name, "locus_to_gene_name.txr");
+		open ( locus_to_gene_name, "locus_to_gene_name.txt");
 		while ( <locus_to_gene_name> ) {
 			if (/^(\S+)\s(\S+)$/) {
 				$hash_locusGene{$1} = $2;
@@ -79,7 +79,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 		print "\n---------------------------------------------------\n" if ($main::verbose);
 		chomp($_);
 
-		next if ( $_ =~ m/^#/ig || $_ =~ /^ID/);
+		next if ( $_ =~ m/^#/ig);
 		
 
 		last if ( $i == $stop );
@@ -303,6 +303,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 	$this->SUPER::error_internet(\%hash_error);
 	close data_file;
 	close locus;
+	print "\nEOF\n";
 
 }
 
