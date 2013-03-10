@@ -146,9 +146,11 @@ sub parse {
 				next;
 			}
 
-			if ( $_ =~ /^.SHLABEL\s(.+)$/ && $good == 1 ) {
+			if ( $_ =~ /^.SHLABEL\s?(\S+)$/ && $good == 1 ) {
+				$good = 0 if ($1 eq "");
 				$intA = $1 if ( $prot eq "A" );
 				$intB = $1 if ( $prot eq "B" );
+				$good = 0 if (($prot eq "A" && $intA eq "") || ($prot eq "B" && $intB eq ""));
 				next;
 			}
 
@@ -177,7 +179,7 @@ sub parse {
 
 					}
 					else {    # If we need to retrieve it from the web
-						$uniprot_A =  $this->gene_name_to_uniprot_id( $intA, $orga_query )
+						$uniprot_A =  $this->SUPER::gene_name_to_uniprot_id( $intA, $orga_query )
 						  ;    # We call the corresponding function
 
 						if ( $uniprot_A eq "1" || $uniprot_A eq "0" ) {
