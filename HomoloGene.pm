@@ -108,7 +108,7 @@ sub parse {
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
 		}
 
-		push (@arrayHomo, ($uniprot_A, $intA, $hid));
+		push (@arrayHomo, [($uniprot_A, $intA, $hid)]);
 		 
 		$i++;
 		print "[HOMOLOGENE] $i : uniprot A : $uniprot_A - gene name A :$intA\t$hid\n" if (! $main::verbose);

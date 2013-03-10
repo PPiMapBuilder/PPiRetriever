@@ -280,21 +280,23 @@ sub insertHomology {
 		my($uniprot, $genename, $hid) = @{$hmlgy};
 		my $ptn_id;
 		
-		#-- recup le protein.id
+		#-- recup le iprotein.id
 		eval {
+			print "[DEBUG: DBConnector] trying to get id for $uniprot / $genename\n"; 
 			$sth_select_protein->execute( $uniprot, $genename );
 			($ptn_id) = $sth_select_protein->fetchrow_array();
 			1;
 		} or do {
+			print "[DEBUG] Cannot get ID for $uniprot / $genename, next\n";
 			next;			
 		};	
 		
 		#--- Insertion de l'homologie ---#
-#		print "[INFO] insertion homologie\n";
+		print "[INFO] insertion homologie\n";
 		eval {		
 			$sth_insert_homology->execute( $hid, $ptn_id );
 			$this->_commit();
-#			print "[SUCCESS]- homologie interaction\n";
+			print "[SUCCESS]- homologie interaction\n";
 			1;
 		} or do {
 			$this->_rollback();
