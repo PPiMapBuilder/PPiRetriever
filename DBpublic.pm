@@ -11,11 +11,9 @@ use Archive::Extract;
 
 use Data::Dumper;
 
-use LWP::Simple; #Needed to use the function get
-
 use DBConnector;
 
-	 use WWW::Mechanize;
+use WWW::Mechanize;
 
 use Interaction;
 
@@ -81,7 +79,7 @@ sub gene_name_to_uniprot_id () {
 	my ($this, $first, $organism) = @_;
 
 	my $query = '"'.$first.'" AND organism:"'.$organism.'" AND reviewed:yes';
-	my $uri = "http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml";
+	my $uri = "http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml&limit=2";
 
     my $mech = WWW::Mechanize->new();
 	$mech->get( $uri);
