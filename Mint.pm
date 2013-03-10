@@ -185,6 +185,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 			}
 			
 		}
+		else {next;}
 		
 		
 		if ($data[1] =~ /entrezgene\/locuslink:(\d+)/) {
