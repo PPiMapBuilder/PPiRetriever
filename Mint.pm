@@ -58,7 +58,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 
 	my %hash_locusGene;
 	if (-f "locus_to_gene_name.txt") {
-		open ( locus_to_gene_name, "locus_to_gene_name.txr");
+		open ( locus_to_gene_name, "locus_to_gene_name.txt");
 		while ( <locus_to_gene_name> ) {
 			if (/^(\S+)\s(\S+)$/) {
 				$hash_locusGene{$1} = $2;
@@ -79,7 +79,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 		print "\n---------------------------------------------------\n" if ($main::verbose);
 		chomp($_);
 
-		next if ( $_ =~ m/^#/ig || $_ =~ /^ID/);
+		next if ( $_ =~ m/^#/ig);
 		
 
 		last if ( $i == $stop );
@@ -161,7 +161,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 			}		
 		}
-		elsif ($data[0] =~ /uniprotkb:(.+)$/) {
+		elsif ($data[0] =~ /uniprotkb:(.+?);?/) {
 			$uniprot_A = $1;
 			next if (!$uniprot_A);
 			print "[DEBUG : MINT] uniprot A : $uniprot_A\n" if ($main::verbose);
@@ -236,7 +236,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 			}		
 		}
-		elsif ($data[1] =~ /uniprotkb:(.+)$/) {
+		elsif ($data[1] =~ /uniprotkb:(.+?);?/) {
 			$uniprot_B = $1;
 			next if (!$uniprot_B);
 			print "[DEBUG : MINT] uniprot B : $uniprot_B\n" if ($main::verbose);
