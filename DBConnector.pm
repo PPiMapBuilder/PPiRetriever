@@ -94,7 +94,6 @@ sub insert() {
 	my $sth_insert_organism = $this->{'_dbh'}->prepare("INSERT INTO organism(tax_id) VALUES (?) RETURNING tax_id");
 	my $sth_insert_interaction_data = $this->{'_dbh'}->prepare("INSERT INTO interaction_data(db_source_name, pubmed_id, organism_tax_id,experimental_system) VALUES (?,?,?,?) RETURNING id");
 	my $sth_insert_interaction = $this->{'_dbh'}->prepare("INSERT INTO interaction(protein_id1, protein_id2) VALUES (?,?) RETURNING id");
-#	my $sth_insert_homology = $this->{'_dbh'}->prepare("INSERT INTO homology(protein_a, protein_b) VALUES (?, ?)");
 	my $sth_insert_link_data_interaction = $this->{'_dbh'}->prepare("INSERT INTO link_data_interaction(interaction_id, interaction_data_id) VALUES (?,?)");
 
 
@@ -265,6 +264,43 @@ sub insert() {
 			};
 		}
 	}
+}
+
+#
+# Insert a set of homologies from a Homologene database file
+#
+sub insertHomology {
+	my ($this, $HomGrp) = @_;
+	
+	my $sth_insert_homology = $this->{'_dbh'}->prepare("INSERT INTO homology(hid, ptn_id) VALUES (?, ?)");
+	my $sth_select_protein = $this->{'_dbh'}->prepare("SELECT id FROM protein WHERE uniprot_id = ? AND gene_name = ?");
+	
+	foreach my $hmlgy ( @{$HomGrp} ) {
+		
+		my($uniprot, $genename, $hid) = @{$hmlgy};
+		my $ptn_id;
+		
+		#-- recup le protein.id
+		eval {
+			$sth_select_protein->execute( $uniprot, $genename );
+			($ptn_id) = $sth_select_protein->fetchrow_array();
+			1;
+		} or do {
+			next;			
+		};	
+		
+		#--- Insertion de l'homologie ---#
+#		print "[INFO] insertion homologie\n";
+		eval {		
+			$sth_insert_homology->execute( $hid, $ptn_id );
+			$this->_commit();
+#			print "[SUCCESS]- homologie interaction\n";
+			1;
+		} or do {
+			$this->_rollback();
+		};
+	}
+	
 }
 
 sub DESTROY {
