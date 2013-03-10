@@ -65,7 +65,7 @@ sub sendBDD {
 
 sub error_internet {
 	my ($this, $errors) = @_;
-	my %h = (1=>'Did not fine the information', 0=>'Did not access internet');
+	my %h = (1=>'Did not find the information', 0=>'Did not access internet');
 	open (error, ">>error_internet.log");
 	foreach my $err (keys %{$errors}) {
 		print error "$err\t$h{$errors->{$err}}\n";
@@ -84,9 +84,6 @@ sub gene_name_to_uniprot_id () {
     my $mech = WWW::Mechanize->new();
 	$mech->get( $uri);
 
-	#my $file = get("http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml"); 
-
-	#print "[DEBUG : DBPublic] http://www.uniprot.org/uniprot/?query=".$query."&sort=score&format=xml\n";
 	return 0 if( $mech->content( format => 'text' ) eq "");
 
 	if ($mech->content( format => 'text' ) =~ /<accession>(\S+)<\/accession>/s) {

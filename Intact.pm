@@ -99,32 +99,32 @@ sub parse {
 			next;
 		} else {
 			$orga_query = "$hash_orga_tax{$origin} [$origin]";
-			print "[DEBUG : DIP] Origin : $origin\n" if ($main::verbose);
+			print "[DEBUG : INTACT] Origin : $origin\n" if ($main::verbose);
 		}
 
 		$uniprot_A = $1 if ($data[0] =~ /^uniprotkb:(.+)$/);
 		next if (!$uniprot_A);
-		print "[DEBUG : DIP] uniprot A : $uniprot_A\n" if ($main::verbose);
+		print "[DEBUG : INTACT] uniprot A : $uniprot_A\n" if ($main::verbose);
 				
 		
 		$uniprot_B = $1 if ($data[1] =~ /uniprotkb:(.+)$/);
 		next if (!$uniprot_B);
-		print "[DEBUG : DIP] uniprot B : $uniprot_B\n" if ($main::verbose);
+		print "[DEBUG : INTACT] uniprot B : $uniprot_B\n" if ($main::verbose);
 		
 		
 		if ( exists( $hash_uniprot_id{$uniprot_A} ) )
 		{ # If the uniprot id has already been retrieved (and is now stored in the file)
 			$intA = $hash_uniprot_id{$uniprot_A};    # we retrieve it from the file
-			print "[DEBUG : DIP] gene name A : $intA retrieve from file\n" if ($main::verbose);
+			print "[DEBUG : INTACT] gene name A : $intA retrieve from file\n" if ($main::verbose);
 		}
 		else {                    # If we need to retrieve it from the web
 			$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
 			if ($intA eq "1" || $intA eq "0") {
 				$hash_error{$uniprot_A} = $intA;
-				print "[DEBUG : DIP] gene name A : error retrieving uniprot from internet\n" if ($main::verbose);		
+				print "[DEBUG : INTACT] gene name A : error gene name uniprot from internet\n" if ($main::verbose);		
 				next; 
 			} 
-			print "[DEBUG : DIP] gene name A : $intA retrieve from internet\n" if ($main::verbose);		
+			print "[DEBUG : INTACT] gene name A : $intA retrieve from internet\n" if ($main::verbose);		
 			
 			$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
@@ -135,26 +135,26 @@ sub parse {
 		if ( exists( $hash_uniprot_id{$uniprot_B} ) )
 		{ # If the uniprot id has already been retrieved (and is now stored in the file)
 			$intB = $hash_uniprot_id{$uniprot_B};    # we retrieve it from the file
-			print "[DEBUG : DIP] gene name B : $intB retrieve from file\n" if ($main::verbose);
+			print "[DEBUG : INTACT] gene name B : $intB retrieve from file\n" if ($main::verbose);
 		}
 		else {                    # If we need to retrieve it from the web
 			$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
 			if ($intB eq "1" || $intB eq "0") {
 				$hash_error{$uniprot_B} = $intB;
-				print "[DEBUG : DIP] gene name B : error retrieving uniprot from internet\n" if ($main::verbose);		
+				print "[DEBUG : INTACT] gene name B : error retrieving gene name from internet\n" if ($main::verbose);		
 				next; 
 			} 
-			print "[DEBUG : DIP] gene name B : $intA retrieve from internet\n" if ($main::verbose);		
+			print "[DEBUG : INTACT] gene name B : $intA retrieve from internet\n" if ($main::verbose);		
 		
 			$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
 		}
 		
 		my @sys_exp = ($1) if ($data[11] =~ /\((.+)\)/);
-		print "[DEBUG : DIP] sys_exp retrieved\n" if ($main::verbose);
+		print "[DEBUG : INTACT] sys_exp retrieved\n" if ($main::verbose);
 		
 		@pubmed = ($1) if ($data[8] =~ /pubmed:(\d+)/);
-		print "[DEBUG : DIP] pubmed retrieved\n" if ($main::verbose);
+		print "[DEBUG : INTACT] pubmed retrieved\n" if ($main::verbose);
 		
 		# Construction of the interaction elements
 		my @A = ( $uniprot_A, $intA );
@@ -166,8 +166,8 @@ sub parse {
 		$this->SUPER::addInteraction($interaction);
 		
 		$i++;
-		print "[DIP] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
-		print "[DEBUG : DIP] Done : $i\n" if ($main::verbose); 
+		print "[INTACT] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
+		print "[DEBUG : INTACT] Done : $i\n" if ($main::verbose); 
 		 
 		if ($this->SUPER::getLength()>=49) {
 			close gene_name_to_uniprot_file;
@@ -274,7 +274,7 @@ sub download {
 		return ($fileUncompressed, 1);
 	} else {
 		print("Download failed.\n");
-		#No data recieved from DIP
+		#No data recieved from INTACT
 		return ("", -2);
 	}
 	
