@@ -266,6 +266,9 @@ sub insert() {
 	}
 }
 
+#
+# Insert a set of homologies from a Homologene database file
+#
 sub insertHomology {
 	my ($this, $HomGrp) = @_;
 	
@@ -281,10 +284,8 @@ sub insertHomology {
 		eval {
 			$sth_select_protein->execute( $uniprot, $genename );
 			($ptn_id) = $sth_select_protein->fetchrow_array();
-			$this->_commit();
 			1;
 		} or do {
-			$this->_rollback();
 			next;			
 		};	
 		
