@@ -87,7 +87,7 @@ sub parse {
 
 		my $orga_query;
 
-print "-------------------------------------\n" if ($main::verbose);
+		print "\n-------------------------------------\n" if ($main::verbose);
 print "[DEBUG : Biogrid] line: ",$. ,"\n" if ($main::verbose);
 
 
@@ -108,62 +108,58 @@ print "[DEBUG : Biogrid] orga_query: $orga_query\n" if ($main::verbose);
 		#my $internet = undef; # Temporary variable to see the number of request to the uniprot.org server
 
 		$intA = $data[7]; # We retrieve the first interactor
-print "[DEBUG : Biogrid] intA: $intA\n" if ($main::verbose);
-		if (exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
-			$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
-print "[DEBUG : Biogrid] uniprotA: $uniprot_A\n" if ($main::verbose);
-			
+print "[DEBUG : BIOGRID] gene name A : $intA\n" if ($main::verbose);
+		
+		if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
+			$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query}; # we retrieve it from the file
+			print "[DEBUG : BIOGRID] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
 		}
 		else { # If we need to retrieve it from the web
-print "[DEBUG : Biogrid] looking for uniprotA on web... " if ($main::verbose);
-		
-			$uniprot_A = $this->SUPER::gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
-print "get $uniprot_A\n" if ($main::verbose);
-			
+			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
 			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
-				#$hash_uniprot_id->{$intA}->{$orga_query} = undef;
-				next;
-			}
-			$hash_uniprot_id->{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
+				$hash_error{$intA} = $uniprot_A;
+				print "[DEBUG : BIOGRID] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
+				next; 
+			} 
+			print "[DEBUG : BIOGRID] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
+			
+			$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
-			#$internet .= 'i'; # We indicate that we used an internet connection
 		}
-
 
 		# Same principle as above
 		$intB = $data[8];
-print "[DEBUG : Biogrid] intB: $intB\n" if ($main::verbose);
-		if ( exists( $hash_uniprot_id->{$intB}->{$orga_query} ) ) {
-			$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_query};
-print "[DEBUG : Biogrid] uniprotB: $uniprot_B\n" if ($main::verbose);
+next if (!defined($intB));
+		print "[DEBUG : BIOGRID] gene name B : $intB\n" if ($main::verbose);
+		if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) ) {
+			$uniprot_B = $hash_uniprot_id{$intB}->{$orga_query};
+			print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
 			
 		}
 		else {
-print "[DEBUG : Biogrid] looking for uniprotB on web... " if ($main::verbose);
-			
-			$uniprot_B = $this->SUPER::gene_name_to_uniprot_id( $intB, $orga_query );
-print "get $uniprot_B\n" if ($main::verbose);
-			
-			next if ($uniprot_B eq "1" || $uniprot_B eq "0");
-			$hash_uniprot_id->{$intB}->{$orga_query} = $uniprot_B;
+			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
+			if ($uniprot_B eq "1" || $uniprot_B eq "0") {
+				print "[DEBUG : BIOGRID] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
+				$hash_error{$intB} = $uniprot_B;
+				next;
+			}
+			print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
+			$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
-			# $internet .= 'i';
 		}
 		
-
-		if ( !defined($uniprot_A) || !defined($uniprot_B) ) { # If the uniprot id was not retrieved, we do not keep the interaction
-			next;
-print "[DEBUG : Biogrid] A or B not defined, not defined\n" if ($main::verbose);
-		}
+	
 
 		$exp_syst = $data[11]; # We retrieve the experimental system
+		print "[DEBUG : BIOGRID] sys_exp retrieved\n" if ($main::verbose);
 		$pubmed   = $data[14]; # We retrieve the pubmed id
+		print "[DEBUG : BIOGRID] pubmed retrieved\n" if ($main::verbose);
 
 		# Construction of the interaction elements
 		my @A = ( $uniprot_A, $intA );
 		my @B = ( $uniprot_B, $intB );
 		my @pubmed  = ($pubmed);
-		my @sys_exp = ($exp_syst);
+		my @sys_exp = ($this->SUPER::normalizeString($exp_syst));
 
 		# Construction of the interaction object
 		my $interaction = Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
@@ -171,21 +167,29 @@ print "[DEBUG : Biogrid] A or B not defined, not defined\n" if ($main::verbose);
 
 		$this->SUPER::addInteraction($interaction);
 		
-				
+		$i++;
+		print "[BIOGRID] $i : uniprot A : $uniprot_A - gene name A :$intA\tuniprot B : $uniprot_B - gene name B :$intB\n" if (! $main::verbose);
+		print "[DEBUG : BIOGRID] Done : $i\n" if ($main::verbose); 
+		 
 		if ($this->SUPER::getLength()>=49) {
 			close gene_name_to_uniprot_file;
 			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
 			$this->SUPER::sendBDD();
+			$this->SUPER::error_internet(\%hash_error);
+			%hash_error = ();
+			
 
 		}
-		
-		#print $#{$this->{ArrayInteraction}}."\n";
-		$i++;
-		print "[BIOGRID] $i\t$intA:$uniprot_A\t$intB:$uniprot_B\n"; # Input for debug
 
 
 	}
+	$this->SUPER::sendBDD();
+	close gene_name_to_uniprot_file;
+	$this->SUPER::error_internet(\%hash_error);
+	close data_file;
+
 }
+
 
 
 #Download and uncompress Biogrid data file

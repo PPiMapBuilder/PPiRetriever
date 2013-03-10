@@ -38,6 +38,13 @@ sub getLength {
 	return $#{$this->{ArrayInteraction}};
 }
 
+sub normalizeString {
+	my ($this, $str) = @_;
+
+	$str =~ s/^\s+(.+?)\s+$/$1/;
+	return lc($str);	
+}
+
 sub addInteraction {
 	my ($this, $objet) = @_;
 	push (@{$this->{ArrayInteraction}}, $objet);
