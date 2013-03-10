@@ -23,7 +23,7 @@ sub new {
 }
 
 sub parse_all {
-	my ($this, $path, $stop) = @_;
+	my ($this, $stop, $path) = @_;
 	$this->parse($stop, $_) foreach (glob($path."/biogrid*"));	
 }
 
@@ -111,14 +111,14 @@ print "[DEBUG : Biogrid] orga_query: $orga_query\n" if ($main::verbose);
 print "[DEBUG : Biogrid] intA: $intA\n" if ($main::verbose);
 		if (exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
 			$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
-print "[DEBUG : Biogrid] uniprotA: $uniprot_A\n";
+print "[DEBUG : Biogrid] uniprotA: $uniprot_A\n" if ($main::verbose);
 			
 		}
 		else { # If we need to retrieve it from the web
-print "[DEBUG : Biogrid] looking for uniprotA on web... ";
+print "[DEBUG : Biogrid] looking for uniprotA on web... " if ($main::verbose);
 		
 			$uniprot_A = $this->SUPER::gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
-print "get $uniprot_A\n";
+print "get $uniprot_A\n" if ($main::verbose);
 			
 			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
 				#$hash_uniprot_id->{$intA}->{$orga_query} = undef;
@@ -132,17 +132,17 @@ print "get $uniprot_A\n";
 
 		# Same principle as above
 		$intB = $data[8];
-print "[DEBUG : Biogrid] intB: $intB\n";
+print "[DEBUG : Biogrid] intB: $intB\n" if ($main::verbose);
 		if ( exists( $hash_uniprot_id->{$intB}->{$orga_query} ) ) {
 			$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_query};
-print "[DEBUG : Biogrid] uniprotB: $uniprot_B\n";
+print "[DEBUG : Biogrid] uniprotB: $uniprot_B\n" if ($main::verbose);
 			
 		}
 		else {
-print "[DEBUG : Biogrid] looking for uniprotB on web... ";
+print "[DEBUG : Biogrid] looking for uniprotB on web... " if ($main::verbose);
 			
 			$uniprot_B = $this->SUPER::gene_name_to_uniprot_id( $intB, $orga_query );
-print "get $uniprot_B\n";
+print "get $uniprot_B\n" if ($main::verbose);
 			
 			next if ($uniprot_B eq "1" || $uniprot_B eq "0");
 			$hash_uniprot_id->{$intB}->{$orga_query} = $uniprot_B;
@@ -153,7 +153,7 @@ print "get $uniprot_B\n";
 
 		if ( !defined($uniprot_A) || !defined($uniprot_B) ) { # If the uniprot id was not retrieved, we do not keep the interaction
 			next;
-print "[DEBUG : Biogrid] A or B not defined, not defined\n";
+print "[DEBUG : Biogrid] A or B not defined, not defined\n" if ($main::verbose);
 		}
 
 		$exp_syst = $data[11]; # We retrieve the experimental system
@@ -181,7 +181,7 @@ print "[DEBUG : Biogrid] A or B not defined, not defined\n";
 		
 		#print $#{$this->{ArrayInteraction}}."\n";
 		$i++;
-		print "[INFO] $i\t$intA:$uniprot_A\t$intB:$uniprot_B\n"; # Input for debug
+		print "[BIOGRID] $i\t$intA:$uniprot_A\t$intB:$uniprot_B\n"; # Input for debug
 
 
 	}

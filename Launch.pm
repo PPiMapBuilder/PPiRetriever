@@ -39,9 +39,9 @@ sub execute {
 		if ($db eq "biogrid") {
 			$database = Biogrid->new($this->{DBconnector});
 			my ($path, $code) = $database->download();
-			
+			$path = "~/PPiRetriever/BIOGRID/parts";
 			if ($code == 1 || $code == -1) {
-				$database->parse($taille, $path);
+				$database->parse_all($taille, $path);
 			}
 		}
 		else {
