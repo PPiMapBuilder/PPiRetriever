@@ -1,8 +1,6 @@
 package Mint;
 
-use warnings;    #Activate all warnings 
 use strict;      #Variable declaration control
-use Carp;        #Additionnal user warnings
 
 use DBpublic;
 use Interaction;
@@ -156,7 +154,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				print "[DEBUG : MINT] gene name A : $intA retrieve from internet\n" if ($main::verbose);		
 			
 				$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
-				$hash_locysGene{$loc} = $intA;
+				$hash_locusGene{$loc} = $intA;
 				print locus "$loc\t$intA\n";
 				print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
 			}
@@ -195,16 +193,16 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 			}
 			else {                    # If we need to retrieve it from the web
 				my $loc = $intB;
-				$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
+				$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
 				if ($intB eq "1" || $intB eq "0") {
-					$hash_error{$uniprot_A} = $intA;
+					$hash_error{$uniprot_B} = $intB;
 					print "[DEBUG : MINT] gene name B : error retrieving uniprot from internet\n" if ($main::verbose);		
 					next; 
 				} 
 				print "[DEBUG : MINT] gene name B : $intB retrieve from internet\n" if ($main::verbose);		
 			
 				$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
-				$hash_locysGene{$loc} = $intB;
+				$hash_locusGene{$loc} = $intB;
 				print locus "$loc\t$intB\n";
 				print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
 			}
