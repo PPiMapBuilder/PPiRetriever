@@ -150,7 +150,7 @@ sub parse {
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
 		}
 		
-		my @sys_exp = ($1) if ($data[11] =~ /\((.+)\)/);
+		my @sys_exp = ($this->SUPER::normalizeString($1)) if ($data[11] =~ /\((.+)\)/);
 		print "[DEBUG : INTACT] sys_exp retrieved\n" if ($main::verbose);
 		
 		@pubmed = ($1) if ($data[8] =~ /pubmed:(\d+)/);
