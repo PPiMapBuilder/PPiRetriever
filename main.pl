@@ -19,21 +19,20 @@ my $path;
 
 our $verbose;
 
-  my $result = GetOptions (
-			"parse=s" => \$parse, 
-			"host=s" => \$host,
-  			"port=i" => \$port,
-  			"database=s" => \$database,
-  			"user=s" => \$user,
-  			"password=s" => \$password,
-  			"debug:i" => \$debug,
-			"help"   => \$help,
-			"verbose"  => \$verbose,
-			"path=s" => \$path
-			); 
+my $result = GetOptions (
+		"parse=s" => \$parse, 
+		"host=s" => \$host,
+  		"port=i" => \$port,
+  		"database=s" => \$database,
+  		"user=s" => \$user,
+  		"password=s" => \$password,
+  		"debug:i" => \$debug,
+		"help"   => \$help,
+		"verbose"  => \$verbose,
+		"path=s" => \$path
+		); 
 
 my $launch = Launch->new($host, $port, $database, $user, $password);
-print ">> $path\n";
 
 $launch->execute(lc($parse), $debug, $path);
 1;

@@ -24,6 +24,7 @@ use Interaction;
 
 sub new {
 	my ( $classe, $DBConnector ) = @_;		#Sending arguments to constructor
+	die "t'es mauvais jack!\n" unless ($DBConnector);
 	my $this = {
  		"ArrayInteraction" => [],
  		"DBConnector" => $DBConnector
@@ -115,7 +116,7 @@ sub uniprot_id_to_gene_name() {
 	return 0 if(  $mech->content( format => 'text' ) eq "");
 
 
-	if ( $mech->content( format => 'text' ) =~ /<gene>\n<name\stype=\"primary\">(\S+)<\/name>\n.+<\/gene>/s) {
+	if ( $mech->content( format => 'text' ) =~ /<gene>\n<name\stype=\"primary\".*?>(\S+)<\/name>\n.+<\/gene>/s) {
 		return $1;
 	}
 	return 1;

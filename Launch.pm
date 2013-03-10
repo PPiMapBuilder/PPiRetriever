@@ -9,7 +9,6 @@ use Bind;
 
 use DBConnector;
 
-
 sub new {
 	my ( $classe, $host, $port, $database, $user, $passwd ) = @_;		#Sending arguments to constructor
 	my $this = {
@@ -25,6 +24,7 @@ sub execute {
 	$taille = defined($taille) ? $taille : -1;
 	$path =defined($path) ? $path : "";
 
+
 	my $database;
 	
 	if ($db eq "hprd") {
@@ -39,14 +39,14 @@ sub execute {
 		if ($db eq "biogrid") {
 			$database = Biogrid->new($this->{DBconnector});
 			my ($path, $code) = $database->download();
-			$path = "~/PPiRetriever/BIOGRID/parts";
+			#$path = "~/PPiRetriever/BIOGRID/parts";
 			if ($code == 1 || $code == -1) {
-				$database->parse_all($taille, $path);
+				$database->parse($taille, $path);
 			}
 		}
 		else {
 			if ($db eq "intact") {
-				$database = Intact->new();
+				$database = Intact->new($this->{DBconnector});
 				my ($path, $code) = $database->download($this->{DBconnector});
 				if ($code == 1 || $code == -1) {
 					$database->parse($taille, $path);

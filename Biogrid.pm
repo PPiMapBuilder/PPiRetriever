@@ -46,9 +46,9 @@ sub parse {
 		'4896'  => 'Schizosaccharomyces pombe'
 	);
 
-	my $hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
+	my $hash_uniprot_id={}; # A hash to store the uniprot id corresponding to a gene name and an organism
 				# This avoid to run the same request several times in the uniprot.org server
-		
+	my %hash_error;		
 	print "[DEBUG : Biogrid] loading gene name/uniprot file\n" if ($main::verbose);		
 	
 	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
@@ -60,7 +60,7 @@ sub parse {
 	}
 	close(gene_name_to_uniprot_file);
 	print "[DEBUG : Biogrid] loaded.\n" if ($main::verbose);
-	print "--> will open $adresse \n";
+	#print "--> will open $adresse \n";
 	open( data_file, $adresse ); # We open the database file
 	my $database = 'biogrid'; # We note the corresponding database we are using
 
@@ -110,8 +110,8 @@ print "[DEBUG : Biogrid] orga_query: $orga_query\n" if ($main::verbose);
 		$intA = $data[7]; # We retrieve the first interactor
 print "[DEBUG : BIOGRID] gene name A : $intA\n" if ($main::verbose);
 		
-		if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
-			$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query}; # we retrieve it from the file
+		if ( exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
+			$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
 			print "[DEBUG : BIOGRID] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
 		}
 		else { # If we need to retrieve it from the web
@@ -123,7 +123,7 @@ print "[DEBUG : BIOGRID] gene name A : $intA\n" if ($main::verbose);
 			} 
 			print "[DEBUG : BIOGRID] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
 			
-			$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
+			$hash_uniprot_id->{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
 		}
 
@@ -131,8 +131,8 @@ print "[DEBUG : BIOGRID] gene name A : $intA\n" if ($main::verbose);
 		$intB = $data[8];
 next if (!defined($intB));
 		print "[DEBUG : BIOGRID] gene name B : $intB\n" if ($main::verbose);
-		if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) ) {
-			$uniprot_B = $hash_uniprot_id{$intB}->{$orga_query};
+		if ( exists( $hash_uniprot_id->{$intB}->{$orga_query} ) ) {
+			$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_query};
 			print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
 			
 		}
@@ -144,7 +144,7 @@ next if (!defined($intB));
 				next;
 			}
 			print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
-			$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
+			$hash_uniprot_id->{$intB}->{$orga_query} = $uniprot_B;
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
 		}
 		
