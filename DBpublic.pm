@@ -24,7 +24,7 @@ use Interaction;
 
 sub new {
 	my ( $classe, $DBConnector ) = @_;		#Sending arguments to constructor
-	#die "t'es mauvais jack!\n" unless ($DBConnector);
+	die "t'es mauvais jack!\n" unless ($DBConnector);
 	my $this = {
  		"ArrayInteraction" => [],
  		"DBConnector" => $DBConnector

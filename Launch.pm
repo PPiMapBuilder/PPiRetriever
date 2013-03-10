@@ -11,22 +11,25 @@ use HomoloGene;
 
 use DBConnector;
 
+use Data::Dumper;
+
 sub new {
 	my ( $classe, $host, $port, $database, $user, $passwd ) =
 	  @_;    #Sending arguments to constructor
 	my $this =
-	  { "DBconnector" =>
-		  DBConnector->new( $host, $port, $database, $user, $passwd )
+	  { 'DBconnector' => undef
+	
 	  };
-
-	die "plop" unless ($this->{DBConnector});
+	$this->{DBconnector} = DBConnector->new( $host, $port, $database, $user, $passwd );
+	#print Dumper $this->{DBConnector};
+	die "Cannot connect DBI\n" unless ($this->{DBconnector});
 	bless( $this, $classe );    #Linking the reference to the class
 	return $this;               #Returning the blessed reference
 }
 
 sub help {
 	my ( $this ) = @_;
-	print "Usage: perl main.pl\n\t--host <biogrid|intact|mint|hprd|bind>\n\t--port 1111\n\t--database <dbname>\n\t--user <username>\n\t--password <pswd>\n\t[-debug 123]\n\t[-v]\n";
+	print "Usage: perl main.pl\n\t--host host --parse <biogrid|intact|mint|hprd|bind>\n\t--port 1111\n\t--database <dbname>\n\t--user <username>\n\t--password <pswd>\n\t[-debug 123]\n\t[-v]\n";
 	exit;
 }
 
@@ -85,6 +88,7 @@ sub execute {
 		}
 	}
 	elsif ( $db eq "homologene" ) {
+		print Dumper $this->{DBconnector};
 		$database = HomoloGene->new( $this->{DBconnector} );
 		$database->parse("homologene.data.txt");
 	}

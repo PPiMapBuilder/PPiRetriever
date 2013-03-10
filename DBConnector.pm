@@ -31,7 +31,7 @@ sub new() {
 			RaiseError => $this->{'_raiseError'},
 			PrintError => $this->{'_printError'}
 		}
-	);
+	) or die "Error DBI.\n";
 
 	bless( $this, $class );
 	return $this;
@@ -49,7 +49,7 @@ sub _rollback() {
 
 sub disconnect () {
 	my ($this) = shift;
-	eval { $this->{'dbh'}->disconnect() };
+	eval { $this->{'_dbh'}->disconnect() };
 }
 
 sub insert() {
