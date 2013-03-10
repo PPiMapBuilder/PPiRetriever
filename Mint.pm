@@ -161,7 +161,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 			}		
 		}
-		elsif ($data[0] =~ /uniprotkb:(.+)$/) {
+		elsif ($data[0] =~ /uniprotkb:(.+?);?/) {
 			$uniprot_A = $1;
 			next if (!$uniprot_A);
 			print "[DEBUG : MINT] uniprot A : $uniprot_A\n" if ($main::verbose);
@@ -185,6 +185,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 			}
 			
 		}
+		else {next;}
 		
 		
 		if ($data[1] =~ /entrezgene\/locuslink:(\d+)/) {
@@ -236,7 +237,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 			}		
 		}
-		elsif ($data[1] =~ /uniprotkb:(.+)$/) {
+		elsif ($data[1] =~ /uniprotkb:(.+?);?/) {
 			$uniprot_B = $1;
 			next if (!$uniprot_B);
 			print "[DEBUG : MINT] uniprot B : $uniprot_B\n" if ($main::verbose);
