@@ -111,40 +111,67 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 		}
 
 
-		$intA = $1 if ($data[0] =~ /entrezgene\/locuslink:(\d+)/); # We retrieve the first interactor
-		next if (!defined($intA));
-		
-		print "[DEBUG : MINT] locus link A : $intA\n" if ($main::verbose);
-		
-		if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
-			$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query}; # we retrieve it from the file
-			print "[DEBUG : MINT] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
-		}
-		else { # If we need to retrieve it from the web
-			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
-			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
-				$hash_error{$intA} = $uniprot_A;
-				print "[DEBUG : MINT] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
-				next; 
-			} 
-			print "[DEBUG : MINT] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
+		if ($data[0] =~ /entrezgene\/locuslink:(\d+)/) {
+			$intA = $1; # We retrieve the first interactor
+			next if (!defined($intA));
 			
-			$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
-			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
-		}
+			print "[DEBUG : MINT] locus link A : $intA\n" if ($main::verbose);
 		
-		if ( exists ( $hash_locusGene{$intA} ) ) {
-			$intA = $hash_locusGene{$intA};
-			print "[DEBUG MINT] gene name A : $intA retrieve from file\n" if ($main::verbose);
+			if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
+				$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query}; # we retrieve it from the file
+				print "[DEBUG : MINT] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
+			}
+			else { # If we need to retrieve it from the web
+				$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
+				if ($uniprot_A eq "1" || $uniprot_A eq "0") {
+					$hash_error{$intA} = $uniprot_A;
+					print "[DEBUG : MINT] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
+					next; 
+				} 
+				print "[DEBUG : MINT] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
+				
+				$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
+				print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
+			}
+			
+			if ( exists ( $hash_locusGene{$intA} ) ) {
+				$intA = $hash_locusGene{$intA};
+				print "[DEBUG MINT] gene name A : $intA retrieve from file\n" if ($main::verbose);
+			}
+			else {
+				if ( exists( $hash_uniprot_id{$uniprot_A} ) )
+				{ # If the uniprot id has already been retrieved (and is now stored in the file)
+					$intA = $hash_uniprot_id{$uniprot_A};    # we retrieve it from the file
+					print "[DEBUG : MINT] gene name A : $intA retrieve from file\n" if ($main::verbose);
+				}
+				else {                    # If we need to retrieve it from the web
+					my $loc = $intA;
+					$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
+					if ($intA eq "1" || $intA eq "0") {
+						$hash_error{$uniprot_A} = $intA;
+						print "[DEBUG : MINT] gene name A : error retrieving uniprot from internet\n" if ($main::verbose);		
+						next; 
+					} 
+					print "[DEBUG : MINT] gene name A : $intA retrieve from internet\n" if ($main::verbose);		
+				
+					$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
+					$hash_locusGene{$loc} = $intA;
+					print locus "$loc\t$intA\n";
+					print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
+				}
+			}		
 		}
-		else {
+		elsif ($data[0] =~ /uniprotkb:(.+)$/) {
+			$uniprot_A = $1;
+			next if (!$uniprot_A);
+			print "[DEBUG : MINT] uniprot A : $uniprot_A\n" if ($main::verbose);
+			
 			if ( exists( $hash_uniprot_id{$uniprot_A} ) )
 			{ # If the uniprot id has already been retrieved (and is now stored in the file)
 				$intA = $hash_uniprot_id{$uniprot_A};    # we retrieve it from the file
-				print "[DEBUG : MINT] gene name A : $intA retrieve from file\n" if ($main::verbose);
+				print "[DEBUG : DIP] gene name A : $intA retrieve from file\n" if ($main::verbose);
 			}
 			else {                    # If we need to retrieve it from the web
-				my $loc = $intA;
 				$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
 				if ($intA eq "1" || $intA eq "0") {
 					$hash_error{$uniprot_A} = $intA;
@@ -152,47 +179,74 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 					next; 
 				} 
 				print "[DEBUG : MINT] gene name A : $intA retrieve from internet\n" if ($main::verbose);		
-			
+				
 				$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
-				$hash_locusGene{$loc} = $intA;
-				print locus "$loc\t$intA\n";
 				print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
 			}
-		}
-
-		# Same principle as above
-		$intB = $1 if ($data[1] =~ /entrezgene\/locuslink:(\d+)/);
-		next if (!defined($intB));
-		print "[DEBUG : MINT] gene name B : $intB\n" if ($main::verbose);
-		if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) ) {
-			$uniprot_B = $hash_uniprot_id{$intB}->{$orga_query};
-			print "[DEBUG : MINT] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
 			
 		}
-		else {
-			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
-			if ($uniprot_B eq "1" || $uniprot_B eq "0") {
-				print "[DEBUG : MINT] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
-				$hash_error{$intB} = $uniprot_B;
-				next;
-			}
-			print "[DEBUG : MINT] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
-			$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
-			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
-		}
 		
-		if ( exists ( $hash_locusGene{$intB} ) ) {
-			$intA = $hash_locusGene{$intB};
-			print "[DEBUG MINT] gene name B : $intB retrieve from file\n" if ($main::verbose);
+		
+		if ($data[1] =~ /entrezgene\/locuslink:(\d+)/) {
+			$intB = $1 if ($data[1] =~ /entrezgene\/locuslink:(\d+)/);
+			next if (!defined($intB));
+			
+			print "[DEBUG : MINT] gene name B : $intB\n" if ($main::verbose);
+			if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) ) {
+				$uniprot_B = $hash_uniprot_id{$intB}->{$orga_query};
+				print "[DEBUG : MINT] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
+				
+			}
+			else {
+				$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
+				if ($uniprot_B eq "1" || $uniprot_B eq "0") {
+					print "[DEBUG : MINT] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
+					$hash_error{$intB} = $uniprot_B;
+					next;
+				}
+				print "[DEBUG : MINT] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
+				$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
+				print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
+			}
+			
+			if ( exists ( $hash_locusGene{$intB} ) ) {
+				$intA = $hash_locusGene{$intB};
+				print "[DEBUG MINT] gene name B : $intB retrieve from file\n" if ($main::verbose);
+			}
+			else {
+				if ( exists( $hash_uniprot_id{$uniprot_B} ) )
+				{ # If the uniprot id has already been retrieved (and is now stored in the file)
+					$intA = $hash_uniprot_id{$uniprot_B};    # we retrieve it from the file
+					print "[DEBUG : MINT] gene name B : $intB retrieve from file\n" if ($main::verbose);
+				}
+				else {                    # If we need to retrieve it from the web
+					my $loc = $intB;
+					$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
+					if ($intB eq "1" || $intB eq "0") {
+						$hash_error{$uniprot_B} = $intB;
+						print "[DEBUG : MINT] gene name B : error retrieving uniprot from internet\n" if ($main::verbose);		
+						next; 
+					} 
+					print "[DEBUG : MINT] gene name B : $intB retrieve from internet\n" if ($main::verbose);		
+				
+					$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
+					$hash_locusGene{$loc} = $intB;
+					print locus "$loc\t$intB\n";
+					print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
+				}
+			}		
 		}
-		else {
+		elsif ($data[1] =~ /uniprotkb:(.+)$/) {
+			$uniprot_B = $1;
+			next if (!$uniprot_B);
+			print "[DEBUG : MINT] uniprot B : $uniprot_B\n" if ($main::verbose);
+			
 			if ( exists( $hash_uniprot_id{$uniprot_B} ) )
 			{ # If the uniprot id has already been retrieved (and is now stored in the file)
-				$intA = $hash_uniprot_id{$uniprot_B};    # we retrieve it from the file
-				print "[DEBUG : MINT] gene name B : $intB retrieve from file\n" if ($main::verbose);
+				$intA = $hash_uniprot_id{$uniprot_A};    # we retrieve it from the file
+				print "[DEBUG : DIP] gene name B : $intB retrieve from file\n" if ($main::verbose);
 			}
 			else {                    # If we need to retrieve it from the web
-				my $loc = $intB;
 				$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
 				if ($intB eq "1" || $intB eq "0") {
 					$hash_error{$uniprot_B} = $intB;
@@ -200,14 +254,12 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 					next; 
 				} 
 				print "[DEBUG : MINT] gene name B : $intB retrieve from internet\n" if ($main::verbose);		
-			
+				
 				$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
-				$hash_locusGene{$loc} = $intB;
-				print locus "$loc\t$intB\n";
 				print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
 			}
+			
 		}
-
 		
 		
 		$exp_syst = $this->SUPER::normalizeString($1) if($data[6]=~ /MI:\d+\((.+)\)$/);
