@@ -63,7 +63,7 @@ sub parse {
 
 	my $i = 0;
 
-	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" )
+	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" )
 	  ; # During this time, we complete the file which contains the uniprot id for a gene name and an organism
 	while (<data_file>) {
 		print "\n---------------------------------------------------\n" if ($main::verbose);		
@@ -110,7 +110,7 @@ sub parse {
 		
 		$uniprot_B = $1 if ($data[1] =~ /.+\|uniprotkb:(.+)$/);
 		next if (!$uniprot_B);
-		print "[DEBUG : DIP] uniprot A : $uniprot_A\n" if ($main::verbose);
+		print "[DEBUG : DIP] uniprot B : $uniprot_A\n" if ($main::verbose);
 		
 		
 		if ( exists( $hash_uniprot_id{$uniprot_A} ) )
