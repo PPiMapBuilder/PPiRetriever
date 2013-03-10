@@ -7,6 +7,8 @@ use Dip;
 use Intact;
 use Bind;
 
+use HomoloGene;
+
 use DBConnector;
 
 sub new {
@@ -80,6 +82,10 @@ sub execute {
 		if ( $code == 1 || $code == -1 ) {
 			$database->parse( $taille, $path );
 		}
+	}
+	elsif ( $db eq "homologene" ) {
+		$database = HomoloGene->new($this->{DBConnector});
+		$database->parse("homologene.data.txt");
 	}
 	else {
 		$this->help();

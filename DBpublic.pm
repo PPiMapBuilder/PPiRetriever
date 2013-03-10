@@ -24,7 +24,7 @@ use Interaction;
 
 sub new {
 	my ( $classe, $DBConnector ) = @_;		#Sending arguments to constructor
-	die "t'es mauvais jack!\n" unless ($DBConnector);
+	#die "t'es mauvais jack!\n" unless ($DBConnector);
 	my $this = {
  		"ArrayInteraction" => [],
  		"DBConnector" => $DBConnector
@@ -64,10 +64,12 @@ sub afficheTest {
 }
 
 sub sendBDD {
-	my ($this) = @_;
+	my ($this, $arrayHomo) = @_;
+	
 	print "\n[STAND BY] dataset\n";
+	if (defined($arrayHomo)) { $this->{DBConnector}->insertHomology($arrayHomo); @{$arrayHomo} = ();} else {
 	$this->{DBConnector}->insert(\@{$this->{ArrayInteraction}});
-	@{$this->{ArrayInteraction}}=();
+	@{$this->{ArrayInteraction}}=(); }
 	print "[SUCCESS] dataset\n";
 }
 
