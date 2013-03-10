@@ -19,6 +19,7 @@ sub new {
 		  DBConnector->new( $host, $port, $database, $user, $passwd )
 	  };
 
+	die "plop" unless ($this->{DBConnector});
 	bless( $this, $classe );    #Linking the reference to the class
 	return $this;               #Returning the blessed reference
 }
@@ -84,7 +85,7 @@ sub execute {
 		}
 	}
 	elsif ( $db eq "homologene" ) {
-		$database = HomoloGene->new($this->{DBConnector});
+		$database = HomoloGene->new( $this->{DBconnector} );
 		$database->parse("homologene.data.txt");
 	}
 	else {

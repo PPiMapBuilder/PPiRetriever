@@ -86,7 +86,7 @@ sub parse {
 		$origin = $data[1];
 		$orga_query = "$hash_orga_tax{$origin} [$origin]";
 
-		$intA = $data[2]; # We retrieve the first interactor
+		$intA = $data[3]; # We retrieve the first interactor
 		next if ($intA eq "-");
 		print "[DEBUG : HOMOLOGENE] gene name A : $intA\n" if ($main::verbose);		
 
