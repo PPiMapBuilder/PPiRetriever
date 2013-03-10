@@ -1,7 +1,14 @@
+# Parse log directory
 log/
+
+# Databases download directories
 BIND/
 BIOGRID/
 HPRD/
 MINT/
 INTACT/
 DIP/
+
+# Unecessary files
+.DS_Store
+.projet
