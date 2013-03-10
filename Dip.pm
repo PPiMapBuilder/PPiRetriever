@@ -129,7 +129,6 @@ sub parse {
 			
 			$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
-			 #$internet .= 'i'; # We indicate that we used an internet connection
 		}
 
 		# Same principle as above
