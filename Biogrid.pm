@@ -187,7 +187,7 @@ next if (!defined($intB));
 	close gene_name_to_uniprot_file;
 	$this->SUPER::error_internet(\%hash_error);
 	close data_file;
-
+	print "\nEOF\n";
 }
 
 

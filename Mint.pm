@@ -303,7 +303,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 	$this->SUPER::error_internet(\%hash_error);
 	close data_file;
 	close locus;
-	print "EOF\n";
+	print "\nEOF\n";
 
 }
 
