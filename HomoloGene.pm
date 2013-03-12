@@ -95,18 +95,7 @@ sub parse {
 			print "[DEBUG : HOMOLOGENE] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);		
 			
 		}
-		else { # If we need to retrieve it from the web
-			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
-			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
-				$hash_error{$intA} = $uniprot_A;
-				print "[DEBUG : HOMOLOGENE] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
-				next; 
-			} 
-			print "[DEBUG : HOMOLOGENE] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
-			
-			%hash_uniprot_id->{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
-			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
-		}
+		else { print "[HOMOLOGENE] gene name A : $intA\t doesn't exist on the database\n"; next; }
 
 		push (@arrayHomo, [($uniprot_A, $intA, $hid)]);
 		 
@@ -130,6 +119,7 @@ sub parse {
 	close gene_name_to_uniprot_file;
 	$this->SUPER::error_internet(\%hash_error);
 	close data_file;
+	print "\nEOF\n";
 	
 }
 
@@ -233,4 +223,5 @@ sub download {
 }
 
 1;
+
 

@@ -272,7 +272,7 @@ sub insert() {
 sub insertHomology {
 	my ($this, $HomGrp) = @_;
 	
-	my $sth_insert_homology = $this->{'_dbh'}->prepare("INSERT INTO homology(hid, ptn_id) VALUES (?, ?)");
+	my $sth_insert_homology = $this->{'_dbh'}->prepare("INSERT INTO homology(h_id, ptn_id) VALUES (?, ?)");
 	my $sth_select_protein = $this->{'_dbh'}->prepare("SELECT id FROM protein WHERE uniprot_id = ? AND gene_name = ?");
 	
 	foreach my $hmlgy ( @{$HomGrp} ) {
@@ -285,6 +285,7 @@ sub insertHomology {
 			print "[DEBUG: DBConnector] trying to get id for $uniprot / $genename\n"; 
 			$sth_select_protein->execute( $uniprot, $genename );
 			($ptn_id) = $sth_select_protein->fetchrow_array();
+			#print "[DEBUG : DBConnector] protein id : $ptn_id\n";
 			1;
 		} or do {
 			print "[DEBUG] Cannot get ID for $uniprot / $genename, next\n";
@@ -300,6 +301,7 @@ sub insertHomology {
 			1;
 		} or do {
 			$this->_rollback();
+			print "[FAILED] homolgy\n";
 		};
 	}
 	
