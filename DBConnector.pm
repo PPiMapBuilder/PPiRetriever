@@ -87,7 +87,7 @@ sub insert() {
 #	print "[INFO] preparing statements\n";
 #--- preparer toutes les requetes (statements) pour le groupe de PPi ---#
 	# INSERT statements
-	my $sth_insert_protein = $this->{'_dbh'}->prepare("INSERT INTO protein(uniprot_id, gene_name) VALUES (?, ?) RETURNING id");
+	my $sth_insert_protein = $this->{'_dbh'}->prepare("INSERT INTO protein(uniprot_id, gene_name, tax_id) VALUES (?, ?, ?) RETURNING id");
 	my $sth_insert_publication = $this->{'_dbh'}->prepare("INSERT INTO publication(pubmed_id) VALUES (?) RETURNING pubmed_id");
 	my $sth_insert_exp_system = $this->{'_dbh'}->prepare("INSERT INTO experimental_system(name) VALUES (?) RETURNING name");
 	my $sth_insert_src_db = $this->{'_dbh'}->prepare("INSERT INTO source_database(name) VALUES (?) RETURNING name");
