@@ -110,14 +110,22 @@ print "[DEBUG : Biogrid] orga_query: $orga_query\n" if ($main::verbose);
 		$intA = $data[7]; # We retrieve the first interactor
 print "[DEBUG : BIOGRID] gene name A : $intA\n" if ($main::verbose);
 		
-		if ( exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
-			$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
-			print "[DEBUG : BIOGRID] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
+		if ( exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the hash)
+			if ($hash_uniprot_id->{$intA}->{$orga_query} eq "undef") { # If the uniprot id is currently irrecoverable
+				print "[DEBUG : BIOGRID] uniprot A : Uniprot is unknown for $intA and $orga_query\n" if ($main::verbose);
+				next;
+			}
+			else { # If the uniprot id exists and is already retrieving
+				$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
+				print "[DEBUG : BIOGRID] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
+			}
 		}
 		else { # If we need to retrieve it from the web
 			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
 			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
 				$hash_error{$intA} = $uniprot_A;
+				$hash_uniprot_id->{$intA}->{$orga_query} = "undef"; 	# We indicates that we already search it during this running
+											# But we don't store it into the file to be able to search it later
 				print "[DEBUG : BIOGRID] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
 				next; 
 			} 
@@ -132,15 +140,21 @@ print "[DEBUG : BIOGRID] gene name A : $intA\n" if ($main::verbose);
 next if (!defined($intB));
 		print "[DEBUG : BIOGRID] gene name B : $intB\n" if ($main::verbose);
 		if ( exists( $hash_uniprot_id->{$intB}->{$orga_query} ) ) {
-			$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_query};
-			print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
-			
+			if ($hash_uniprot_id->{$intB}->{$orga_query} eq "undef") {
+				print "[DEBUG : BIOGRID] uniprot B : Uniprot is unknown for $intB and $orga_query\n" if ($main::verbose);
+				next;
+			}
+			else {
+				$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_query};
+				print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
+			}
 		}
 		else {
 			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
 			if ($uniprot_B eq "1" || $uniprot_B eq "0") {
-				print "[DEBUG : BIOGRID] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
 				$hash_error{$intB} = $uniprot_B;
+				$hash_uniprot_id->{$intB}->{$orga_query} = "undef";
+				print "[DEBUG : BIOGRID] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
 				next;
 			}
 			print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
