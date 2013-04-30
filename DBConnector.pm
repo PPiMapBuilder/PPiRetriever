@@ -16,7 +16,7 @@ sub new() {
 		'_username' => $username,
 		'_password' => $password,
 		'_dbh'      => undef,
-		# should make following arguments editable
+		# might make following arguments editable
 		'_autoCommit' => 0,
 		'_raiseError' => 1,
 		'_printError' => 0
@@ -55,7 +55,6 @@ sub disconnect () {
 sub insert() {
 # Insère une liste de PPI dans la base de données
 #
-# TODO : définir ce qui doit être retourné
 #
 #
 # DESCRIPTION
@@ -87,12 +86,12 @@ sub insert() {
 #	print "[INFO] preparing statements\n";
 #--- preparer toutes les requetes (statements) pour le groupe de PPi ---#
 	# INSERT statements
-	my $sth_insert_protein = $this->{'_dbh'}->prepare("INSERT INTO protein(uniprot_id, gene_name, tax_id) VALUES (?, ?, ?) RETURNING id");
+	my $sth_insert_protein = $this->{'_dbh'}->prepare("INSERT INTO protein(uniprot_id, gene_name, organism_id) VALUES (?, ?, ?) RETURNING id");
 	my $sth_insert_publication = $this->{'_dbh'}->prepare("INSERT INTO publication(pubmed_id) VALUES (?) RETURNING pubmed_id");
 	my $sth_insert_exp_system = $this->{'_dbh'}->prepare("INSERT INTO experimental_system(name) VALUES (?) RETURNING name");
-	my $sth_insert_src_db = $this->{'_dbh'}->prepare("INSERT INTO source_database(name) VALUES (?) RETURNING name");
-	my $sth_insert_organism = $this->{'_dbh'}->prepare("INSERT INTO organism(tax_id) VALUES (?) RETURNING tax_id");
-	my $sth_insert_interaction_data = $this->{'_dbh'}->prepare("INSERT INTO interaction_data(db_source_name, pubmed_id, organism_tax_id,experimental_system) VALUES (?,?,?,?) RETURNING id");
+#	my $sth_insert_src_db = $this->{'_dbh'}->prepare("INSERT INTO source_database(name) VALUES (?) RETURNING name");
+#	my $sth_insert_organism = $this->{'_dbh'}->prepare("INSERT INTO organism(tax_id) VALUES (?) RETURNING tax_id");
+	my $sth_insert_interaction_data = $this->{'_dbh'}->prepare("INSERT INTO interaction_data(db_source_name, pubmed_id, experimental_system) VALUES (?,?,?) RETURNING id");
 	my $sth_insert_interaction = $this->{'_dbh'}->prepare("INSERT INTO interaction(protein_id1, protein_id2) VALUES (?,?) RETURNING id");
 	my $sth_insert_link_data_interaction = $this->{'_dbh'}->prepare("INSERT INTO link_data_interaction(interaction_id, interaction_data_id) VALUES (?,?)");
 
@@ -107,7 +106,7 @@ sub insert() {
 	my $sth_select_interaction_data = $this->{'_dbh'}->prepare("SELECT id FROM interaction_data WHERE db_source_name = ? AND pubmed_id = ? AND organism_tax_id = ? AND experimental_system = ?");
 	my $sth_select_interaction = $this->{'_dbh'}->prepare("SELECT id FROM interaction WHERE protein_id1 = ? AND protein_id2 = ?");
 	
-	# no update statement needed
+	# no update statement needed here
 
 	#print "[INFO] Start reading PPi\n";
 
