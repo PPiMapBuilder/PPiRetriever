@@ -51,7 +51,7 @@ sub parse {
 	my %hash_error;		
 	print "[DEBUG : Biogrid] loading gene name/uniprot file\n" if ($main::verbose);		
 	
-	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
+	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );
 	while (<gene_name_to_uniprot_file>) { # We initialize the hash with the data contained in the file
 		chomp($_);
 		my @convertion_data = split( /\t/, $_ );
