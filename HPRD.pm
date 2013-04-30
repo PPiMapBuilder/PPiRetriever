@@ -43,14 +43,14 @@ sub parse {
 
 	my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 	
-	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
+	my $hash_uniprot_id={}; # A hash to store the uniprot id corresponding to a gene name and an organism
 	      # This avoid to run the same request several times in the uniprot.org server
 	if (-f "gene_name_to_uniprot_database.txt")   {
 	 	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );
 	 	while (<gene_name_to_uniprot_file>) {      # We initialize the hash with the data contained in the file
 			chomp($_);
 			my @convertion_data = split( /\t/, $_ );
-			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
+			$hash_uniprot_id->{ $convertion_data[0] }->{ $convertion_data[2] } =
 		  	$convertion_data[1];
 		}
 		close(gene_name_to_uniprot_file);
@@ -95,21 +95,30 @@ sub parse {
 		next if ($intA eq "-");
 		print "[DEBUG : HPRD] gene name A : $intA\n" if ($main::verbose);		
 
-		if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
-			$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query}; # we retrieve it from the file
-			print "[DEBUG : HPRD] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);		
+		if ( exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
+			if ($hash_uniprot_id->{$intA}->{$orga_query} eq "undef") { # If the uniprot id is currently irrecoverable
+				print "[DEBUG : HPRD] uniprot A : Uniprot is unknown for $intA and $orga_query\n" if ($main::verbose);
+				next;
+			}
+			else { # If the uniprot id exists and is already retrieving
+				$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
+				print "[DEBUG : HPRD] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
+			}	
 			
 		}
 		else { # If we need to retrieve it from the web
 			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
 			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
 				$hash_error{$intA} = $uniprot_A;
+				$hash_uniprot_id->{$intA}->{$orga_query} = "undef"; 	# We indicates that we already search it during this running
+											# But we don't store it into the file to be able to search it later
+				
 				print "[DEBUG : HPRD] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
 				next; 
 			} 
 			print "[DEBUG : HPRD] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
 			
-			$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
+			$hash_uniprot_id->{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
 		}
 
@@ -118,9 +127,15 @@ sub parse {
 		next if ($intB eq "-");
 
 		print "[DEBUG : HPRD] gene name B : $intB\n" if ($main::verbose);
-		if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) ) {
-			$uniprot_B = $hash_uniprot_id{$intB}->{$orga_query};
-			print "[DEBUG : HPRD] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
+		if ( exists( $hash_uniprot_id->{$intB}->{$orga_query} ) ) {
+			if ($hash_uniprot_id->{$intB}->{$orga_query} eq "undef") { # If the uniprot id is currently irrecoverable
+				print "[DEBUG : HPRD] uniprot B : Uniprot is unknown for $intA and $orga_query\n" if ($main::verbose);
+				next;
+			}
+			else { # If the uniprot id exists and is already retrieving
+				$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_query}; # we retrieve it from the file
+				print "[DEBUG : HPRD] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);
+			}	
 			
 		}
 		else {
@@ -128,10 +143,13 @@ sub parse {
 			if ($uniprot_B eq "1" || $uniprot_B eq "0") {
 				print "[DEBUG : HPRD] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
 				$hash_error{$intB} = $uniprot_B;
+				$hash_uniprot_id->{$intA}->{$orga_query} = "undef"; 	# We indicates that we already search it during this running
+											# But we don't store it into the file to be able to search it later
+											
 				next;
 			}
 			print "[DEBUG : HPRD] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
-			$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B;
+			$hash_uniprot_id->{$intB}->{$orga_query} = $uniprot_B;
 			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
 		}
 		
