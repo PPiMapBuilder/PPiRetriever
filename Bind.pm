@@ -45,17 +45,16 @@ sub parse {
 	my %hash_error
 	  ;    #hash of error, retrieve of uniprot or gene name from internet;
 
-	my %hash_uniprot_id
-	  ; # A hash to store the uniprot id corresponding to a gene name and an organism
+	my $hash_uniprot_id={}; # A hash to store the uniprot id corresponding to a gene name and an organism
 	    # This avoid to run the same request several times in the uniprot.org server
-	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" )
-	  ;    # A file to keep this hash
-	while (<gene_name_to_uniprot_file>)
-	{      # We initialize the hash with the data contained in the file
-		chomp($_);
-		my @convertion_data = split( /\t/, $_ );
-		$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
-		  $convertion_data[1];
+	if (-f "gene_name_to_uniprot_database.txt")   {
+		open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );    # A file to keep this hash
+		while (<gene_name_to_uniprot_file>)
+		{      # We initialize the hash with the data contained in the file
+			chomp($_);
+			my @convertion_data = split( /\t/, $_ );
+			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } = $convertion_data[1];
+		}
 	}
 	print "[DEBUG : BIND] list of uniprot/gene has been load\n" if ($main::verbose);
 	close(gene_name_to_uniprot_file);
@@ -64,8 +63,7 @@ sub parse {
 
 	my $i = 0;
 
-	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" )
-	  ; # During this time, we complete the file which contains the uniprot id for a gene name and an organism
+	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" ); # During this time, we complete the file which contains the uniprot id for a gene name and an organism
 
 	my $orgaA;
 	my $orgaB;
@@ -172,11 +170,16 @@ sub parse {
 					if ( $orgaA ne $orgaB ) { $good = 0; next; }
 					$orga_query = "$hash_orga_tax{$orga} [$orgaA]";
 
-					if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) )
+					if ( exists( $hash_uniprot_id->{$intA}->{$orga_query} ) )
 					{ # If the uniprot id has already been retrieved (and is now stored in the file)
-						$uniprot_A = $hash_uniprot_id{$intA}->{$orga_query};    # we retrieve it from the file
-						print"[DEBUG : BIND] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
-
+						if ($hash_uniprot_id->{$intA}->{$orga_query} eq "undef") { # If the uniprot id is currently irrecoverable
+							print "[DEBUG : BIND] uniprot A : Uniprot is unknown for $intA and $orga_query\n" if ($main::verbose);
+							next;
+						}
+						else { # If the uniprot id exists and is already retrieving
+							$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
+							print "[DEBUG : BIND] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
+						}
 					}
 					else {    # If we need to retrieve it from the web
 						$uniprot_A =  $this->SUPER::gene_name_to_uniprot_id( $intA, $orga_query )
@@ -184,23 +187,31 @@ sub parse {
 
 						if ( $uniprot_A eq "1" || $uniprot_A eq "0" ) {
 							$hash_error{$intA} = $uniprot_A;
+							$hash_uniprot_id->{$intA}->{$orga_query} = "undef"; 	# We indicates that we already search it during this running
+											# But we don't store it into the file to be able to search it later
+
 							print"[DEBUG : BIND] uniprot A : error retrieving uniprot from internet\n"
 							  if ($main::verbose);
 							$good = 0;
 							next;
 						}
 						else {
-							$hash_uniprot_id{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
+							$hash_uniprot_id->{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
 							print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
 						}
 
 					}
 
-					if ( exists( $hash_uniprot_id{$intB}->{$orga_query} ) )
+					if ( exists( $hash_uniprot_id->{$intB}->{$orga_query} ) )
 					{ # If the uniprot id has already been retrieved (and is now stored in the file)
-						$uniprot_B =  $hash_uniprot_id{$intB}->{$orga_query};    # we retrieve it from the file
-						print"[DEBUG : BIND] uniprot A : $uniprot_A retrieve from file\n"
-						  if ($main::verbose);
+						if ($hash_uniprot_id->{$intB}->{$orga_query} eq "undef") { # If the uniprot id is currently irrecoverable
+							print "[DEBUG : BIND] uniprot B : Uniprot is unknown for $intB and $orga_query\n" if ($main::verbose);
+							next;
+						}
+						else { # If the uniprot id exists and is already retrieving
+							$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_query}; # we retrieve it from the file
+							print "[DEBUG : BIND] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);
+						}
 
 					}
 					else {    # If we need to retrieve it from the web
@@ -209,15 +220,17 @@ sub parse {
 						  ;    # We call the corresponding function
 						if ( $uniprot_B eq "1" || $uniprot_B eq "0" ) {
 							$hash_error{$intB} = $uniprot_B;
-							print
-"[DEBUG : BIND] uniprot A : error retrieving uniprot from internet\n"
+							$hash_uniprot_id->{$intB}->{$orga_query} = "undef"; 	# We indicates that we already search it during this running
+											# But we don't store it into the file to be able to search it later
+
+							print "[DEBUG : BIND] uniprot B : error retrieving uniprot from internet\n"
 							  if ($main::verbose);
 							$good = 0;
 							next;
 						}
 						else {
-							$hash_uniprot_id{$intB}->{$orga_query} = $uniprot_B; # We store it in the hash
-							print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
+							$hash_uniprot_id->{$intB}->{$orga_query} = $uniprot_B; # We store it in the hash
+							print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n"; # We store it in the file
 						}
 
 					}
