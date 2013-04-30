@@ -7,6 +7,7 @@ use strict;
 sub new {
 	my ( $classe, $A, $B, $organism, $database, $pubmed, $sys_exp ) = @_;
 	my $this = {
+		# TODO : creer des objets Protein(unirpto_id, gene_name, organism_tax_id)
 		"A"        => [],
 		"B"        => [],
 		"organism" => $organism,
