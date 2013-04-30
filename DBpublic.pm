@@ -67,9 +67,13 @@ sub sendBDD {
 	my ($this, $arrayHomo) = @_;
 	
 	print "\n[STAND BY] dataset\n";
-	if (defined($arrayHomo)) { $this->{DBConnector}->insertHomology($arrayHomo); @{$arrayHomo} = ();} else {
-	$this->{DBConnector}->insert(\@{$this->{ArrayInteraction}});
-	@{$this->{ArrayInteraction}}=(); }
+	if (defined($arrayHomo)) {
+		$this->{DBConnector}->insertHomology($arrayHomo);
+		@{$arrayHomo} = ();
+	} else {
+		$this->{DBConnector}->insert(\@{$this->{ArrayInteraction}});
+		@{$this->{ArrayInteraction}}=();
+	}
 	print "[SUCCESS] dataset\n";
 }
 
