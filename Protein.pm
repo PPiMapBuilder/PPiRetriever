@@ -18,6 +18,14 @@ sub new {
 	return $this;
 }
 
+sub toString {
+	my ($this) = @_;
+	
+	print "Uniprot ID : ".$this->{uniprot_id}."\n";
+	print "Gene Name : ".$this->{gene_name}."\n";
+	print "Tax ID : ".$this->{orga_tax_id}."\n";
+}
+
 1;
 
 __END__
