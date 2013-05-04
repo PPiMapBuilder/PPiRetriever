@@ -8,9 +8,8 @@ sub new {
 	my ( $classe, $A, $B, $organism, $database, $pubmed, $sys_exp ) = @_;
 	my $this = {
 		# TODO : creer des objets Protein(unirpto_id, gene_name, organism_tax_id)
-		"A"        => [],
-		"B"        => [],
-		"organism" => $organism,
+		"A"        => undef,
+		"B"        => undef,
 		"database" => $database,
 		"pubmed"   => [],
 		"sys_exp"  => []
@@ -27,23 +26,34 @@ sub new {
 
 sub getUniprotA {
 	my ($this) = @_;
-	return @{ $this->{A} }[0];
+	return $this->{A}->{uniprot_id};
 }
 
 sub getGeneNameA {
 	my ($this) = @_;
-	return @{ $this->{A} }[1];
+	return $this->{A}->{gene_name};	
+}
+
+sub getTaxIdA {
+	my ($this) = @_;
+	return $this->{A}->{orga_tax_id};	
 }
 
 sub getUniprotB {
 	my ($this) = @_;
-	return @{ $this->{B} }[0];
+	return $this->{B}->{uniprot_id};
 }
 
 sub getGeneNameB {
 	my ($this) = @_;
-	return @{ $this->{B} }[1];
+	return $this->{B}->{gene_name};	
 }
+
+sub getTaxIdB {
+	my ($this) = @_;
+	return $this->{B}->{orga_tax_id};	
+}
+
 
 sub toString {
 	my ($this) = @_;
@@ -53,11 +63,15 @@ sub toString {
 	  . $this->getUniprotA() . "\n"
 	  . " - Gene name: "
 	  . $this->getGeneNameA() . "\n"
+	  . " - TaxID: "
+	  . $this->getTaxIdA() . "\n"
 	  . "Interactor B:\n"
 	  . " - UniprotID: "
 	  . $this->getUniprotB() . "\n"
 	  . " - Gene name: "
 	  . $this->getGeneNameB() . "\n"
+  	  . " - TaxID: "
+	  . $this->getTaxIdB() . "\n"
 	  . "Organism : "
 	  . $this->{organism} . "\n"
 	  . "Database : "
