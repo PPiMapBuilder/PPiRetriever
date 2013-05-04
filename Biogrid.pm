@@ -85,6 +85,8 @@ sub parse {
 		my $exp_syst  = undef;
 		my $pubmed    = undef;
 		my $origin    = undef;
+		my $taxA = undef;
+		my $taxB = undef;
 
 		my $orga_query;
 
@@ -94,73 +96,75 @@ print "[DEBUG : Biogrid] line: ",$. ,"\n" if ($main::verbose);
 
 		my @data = split( /\t/, $_ ); # We split the line into an array
 
-		$origin = $data[16] if (defined($hash_orga_tax{$data[16]}));
+		$taxA = $data[15] if (defined($hash_orga_tax{$data[15]}));
+		$taxB = $data[16] if (defined($hash_orga_tax{$data[16]}));
 
 
-		if ( !$origin ) { # If the origin is null, so if the interaction is not from one of the seven organisms, we do not consider this interaction
+		if ( !$taxB  or !$taxA) { # If the origin is null, so if the interaction is not from one of the seven organisms, we do not consider this interaction
 print "[DEBUG : Biogrid] origin not defined, next\n" if ($main::verbose);
 			next;
 		} else {
-				print "[DEBUG : Biogrid] origin: $origin\n" if ($main::verbose);	
+				print "[DEBUG : Biogrid] originA: $taxA\n\toriginB = $taxB" if ($main::verbose);	
 		}
 
-		$orga_query = "$hash_orga_tax{$origin} [$origin]";
-print "[DEBUG : Biogrid] orga_query: $orga_query\n" if ($main::verbose);
+		$orga_queryA = "$hash_orga_tax{$taxA} [$taxA]";
+		$orga_queryB = "$hash_orga_tax{$taxB} [$taxB]";
+print "[DEBUG : Biogrid] orga_queryA: $orga_queryA\n\torga_queryB = $orga_queryB" if ($main::verbose);
 		#my $internet = undef; # Temporary variable to see the number of request to the uniprot.org server
 
 		$intA = $data[7]; # We retrieve the first interactor
 print "[DEBUG : BIOGRID] gene name A : $intA\n" if ($main::verbose);
 		
-		if ( exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the hash)
-			if ($hash_uniprot_id->{$intA}->{$orga_query} eq "undef") { # If the uniprot id is currently irrecoverable
-				print "[DEBUG : BIOGRID] uniprot A : Uniprot is unknown for $intA and $orga_query\n" if ($main::verbose);
+		if ( exists( $hash_uniprot_id->{$intA}->{$orga_queryA} ) ) { # If the uniprot id has already been retrieved (and is now stored in the hash)
+			if ($hash_uniprot_id->{$intA}->{$orga_queryA} eq "undef") { # If the uniprot id is currently irrecoverable
+				print "[DEBUG : BIOGRID] uniprot A : Uniprot is unknown for $intA and $orga_queryA\n" if ($main::verbose);
 				next;
 			}
 			else { # If the uniprot id exists and is already retrieving
-				$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
+				$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_queryA}; # we retrieve it from the file
 				print "[DEBUG : BIOGRID] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);
 			}
 		}
 		else { # If we need to retrieve it from the web
-			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_query ); # We call the corresponding function
+			$uniprot_A = $this->gene_name_to_uniprot_id( $intA, $orga_queryA ); # We call the corresponding function
 			if ($uniprot_A eq "1" || $uniprot_A eq "0") {
 				$hash_error{$intA} = $uniprot_A;
-				$hash_uniprot_id->{$intA}->{$orga_query} = "undef"; 	# We indicates that we already search it during this running
+				$hash_uniprot_id->{$intA}->{$orga_queryA} = "undef"; 	# We indicates that we already search it during this running
 											# But we don't store it into the file to be able to search it later
 				print "[DEBUG : BIOGRID] uniprot A : error retrieving uniprot from internet\n" if ($main::verbose);		
 				next; 
 			} 
 			print "[DEBUG : BIOGRID] uniprot A : $uniprot_A retrieve from internet\n" if ($main::verbose);		
 			
-			$hash_uniprot_id->{$intA}->{$orga_query} = $uniprot_A; # We store it in the hash
-			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n"; # We store it in the file
+			$hash_uniprot_id->{$intA}->{$orga_queryA} = $uniprot_A; # We store it in the hash
+			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_queryA\n"; # We store it in the file
 		}
 
 		# Same principle as above
 		$intB = $data[8];
 next if (!defined($intB));
 		print "[DEBUG : BIOGRID] gene name B : $intB\n" if ($main::verbose);
-		if ( exists( $hash_uniprot_id->{$intB}->{$orga_query} ) ) {
-			if ($hash_uniprot_id->{$intB}->{$orga_query} eq "undef") {
-				print "[DEBUG : BIOGRID] uniprot B : Uniprot is unknown for $intB and $orga_query\n" if ($main::verbose);
+		if ( exists( $hash_uniprot_id->{$intB}->{$orga_queryB} ) ) {
+			if ($hash_uniprot_id->{$intB}->{$orga_queryB} eq "undef") {
+				print "[DEBUG : BIOGRID] uniprot B : Uniprot is unknown for $intB and $orga_queryB\n" if ($main::verbose);
 				next;
 			}
 			else {
-				$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_query};
+				$uniprot_B = $hash_uniprot_id->{$intB}->{$orga_queryB};
 				print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from file\n" if ($main::verbose);		
 			}
 		}
 		else {
-			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_query );
+			$uniprot_B = $this->gene_name_to_uniprot_id( $intB, $orga_queryB );
 			if ($uniprot_B eq "1" || $uniprot_B eq "0") {
 				$hash_error{$intB} = $uniprot_B;
-				$hash_uniprot_id->{$intB}->{$orga_query} = "undef";
+				$hash_uniprot_id->{$intB}->{$orga_queryB} = "undef";
 				print "[DEBUG : BIOGRID] uniprot B : error retrieving uniprot from internet\n" if ($main::verbose);		
 				next;
 			}
 			print "[DEBUG : BIOGRID] uniprot B : $uniprot_B retrieve from internet\n" if ($main::verbose);
-			$hash_uniprot_id->{$intB}->{$orga_query} = $uniprot_B;
-			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";
+			$hash_uniprot_id->{$intB}->{$orga_queryB} = $uniprot_B;
+			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_queryB\n";
 		}
 		
 	
@@ -171,13 +175,15 @@ next if (!defined($intB));
 		print "[DEBUG : BIOGRID] pubmed retrieved\n" if ($main::verbose);
 
 		# Construction of the interaction elements
-		my @A = ( $uniprot_A, $intA );
-		my @B = ( $uniprot_B, $intB );
+		$protA = Protein->new($uniprot_A, $intA, $taxA);
+		$protB = Protein->new($uniprot_B, $intB, $taxB);
+		#my @A = ( $uniprot_A, $intA );
+		#my @B = ( $uniprot_B, $intB );
 		my @pubmed  = ($pubmed);
 		my @sys_exp = ($this->SUPER::normalizeString($exp_syst));
 
 		# Construction of the interaction object
-		my $interaction = Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
+		my $interaction = Interaction->new( $protA, $protB, $database, \@pubmed, \@sys_exp );
 		
 
 		$this->SUPER::addInteraction($interaction);

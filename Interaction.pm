@@ -5,18 +5,16 @@ use strict;
 
 #constructeur
 sub new {
-	my ( $classe, $A, $B, $organism, $database, $pubmed, $sys_exp ) = @_;
+	my ( $classe, $A, $B, $database, $pubmed, $sys_exp ) = @_;
 	my $this = {
 		# TODO : creer des objets Protein(unirpto_id, gene_name, organism_tax_id)
-		"A"        => undef,
-		"B"        => undef,
+		"A"        => $A,
+		"B"        => $B,
 		"database" => $database,
 		"pubmed"   => [],
 		"sys_exp"  => []
 	};
 
-	@{ $this->{A} }       = @{$A};
-	@{ $this->{B} }       = @{$B};
 	@{ $this->{pubmed} }  = @{$pubmed};
 	@{ $this->{sys_exp} } = @{$sys_exp};
 
