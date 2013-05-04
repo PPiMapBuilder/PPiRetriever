@@ -120,8 +120,6 @@ sub insert() {
 		my $idInteractorA     = undef;
 		my $idInteractorB     = undef;
 		my $idInteraction     = undef;
-		my $tax_idA			  = $PPi->{"A"}->{organism};
-		my $tax_idB			  = $PPi->{"B"}->{organism};
 		my @idInteractionData = ();
 		my @idPublications	  = @{ $PPi->{pubmed} };
 		my @idSysExp		  = @{ $PPi->{sys_exp} };
