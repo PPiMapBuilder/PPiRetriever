@@ -56,7 +56,6 @@ sub insert() {
 # Insère une liste de PPI dans la base de données
 #
 #
-#
 # DESCRIPTION
 # On insère les données "dures" dans un premier temps, à savoir:
 # notation:	- <table> (<champ1>, <champ2>, <etc>)
@@ -103,7 +102,7 @@ sub insert() {
 	my $sth_select_organism_from_tax_id = $this->{'_dbh'}->prepare("SELECT tax_id FROM organism WHERE tax_id = ?");
 	my $sth_select_organism_from_name = $this->{'_dbh'}->prepare("SELECT tax_id FROM organism WHERE name = ?");
 	my $sth_select_exp_sys = $this->{'_dbh'}->prepare("SELECT name FROM experimental_system WHERE name = ?");
-	my $sth_select_interaction_data = $this->{'_dbh'}->prepare("SELECT id FROM interaction_data WHERE db_source_name = ? AND pubmed_id = ? AND organism_tax_id = ? AND experimental_system = ?");
+	my $sth_select_interaction_data = $this->{'_dbh'}->prepare("SELECT id FROM interaction_data WHERE db_source_name = ? AND pubmed_id = ? AND experimental_system = ?");
 	my $sth_select_interaction = $this->{'_dbh'}->prepare("SELECT id FROM interaction WHERE protein_id1 = ? AND protein_id2 = ?");
 	
 	# no update statement needed here
@@ -121,19 +120,20 @@ sub insert() {
 		my $idInteractorA     = undef;
 		my $idInteractorB     = undef;
 		my $idInteraction     = undef;
-		my $db_source		  = $PPi->{database};
-		my $tax_id			  = $PPi->{organism};
+		my $tax_idA			  = $PPi->{"A"}->{organism};
+		my $tax_idB			  = $PPi->{"B"}->{organism};
 		my @idInteractionData = ();
 		my @idPublications	  = @{ $PPi->{pubmed} };
 		my @idSysExp		  = @{ $PPi->{sys_exp} };
-	
+		my $db_source		  = $PPi->{database};
+			
 	
 		# execution des statements
 #		print "[INFO] insertion interacteur A\n";
 	
 		#--- insertion de l'interacteur A et récupération de son ID ---#
 		eval {
-			$sth_insert_protein->execute( $PPi->getUniprotA(), $PPi->getGeneNameA() );
+			$sth_insert_protein->execute( $PPi->getUniprotA(), $PPi->getGeneNameA(), $PPi->getTaxIdA );
 			$this->_commit();
 			$idInteractorA = (keys %{$sth_insert_protein->fetchall_hashref('id')})[0];
 #			print "[INTERACTOR A]\t",$PPi->getUniprotA(), ":", $PPi->getGeneNameA(),"\n";
@@ -149,7 +149,7 @@ sub insert() {
 #		print "[INFO] insertion interacteur B\n";
 
 		eval {
-			$sth_insert_protein->execute( $PPi->getUniprotB(), $PPi->getGeneNameB() );
+			$sth_insert_protein->execute( $PPi->getUniprotB(), $PPi->getGeneNameB(), $PPi->getTaxIdB );
 			$this->_commit();
 			($idInteractorB) = (keys %{$sth_insert_protein->fetchall_hashref('id')})[0];
 #			print "[INTERACTOR B]\t",$PPi->getUniprotB(), ":", $PPi->getGeneNameB(),"\n";
@@ -204,7 +204,6 @@ sub insert() {
 					$sth_insert_interaction_data->execute(
 						$PPi->{database},
 						$pubmed_id,
-						$PPi->{organism},
 						$sys_exp					
 					);
 
@@ -217,7 +216,6 @@ sub insert() {
 					$sth_select_interaction_data->execute(
 						$PPi->{database},
 						$pubmed_id,
-						$PPi->{organism},
 						$sys_exp
 					);
 					push (@idInteractionData , $sth_select_interaction_data->fetchrow_array());	
