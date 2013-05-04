@@ -15,6 +15,8 @@ use DBConnector;
 
 use WWW::Mechanize;
 
+use String::Trim;
+
 use Interaction;
 
 #Will contain an array of 10 interaction objects
@@ -42,8 +44,8 @@ sub getLength {
 sub normalizeString {
 	my ($this, $str) = @_;
 
-	$str =~ s/^\s+(.+?)\s+$/$1/;
-	return lc($str);	
+	#$str =~ s/^\s+(.+?)\s+$/$1/;
+	return trim(lc($str));	
 }
 
 sub addInteraction {
