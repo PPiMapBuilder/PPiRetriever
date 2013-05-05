@@ -160,12 +160,15 @@ sub parse {
 		print "[DEBUG : HPRD] pubmed retrieved\n" if ($main::verbose);
 		
 		# Construction of the interaction elements
-		my @A = ( $uniprot_A, $intA );
-		my @B = ( $uniprot_B, $intB );
+		#my @A = ( $uniprot_A, $intA );
+		#my @B = ( $uniprot_B, $intB );
+
+		my $protA = Protein->new($uniprot_A, $intA, $origin);
+		my $protB = Protein->new($uniprot_B, $intB, $origin);
 
 
 		# Construction of the interaction object
-		my $interaction = Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
+		my $interaction = Interaction->new( $protA, $protB, $database, \@pubmed, \@sys_exp );
 
 		$this->SUPER::addInteraction($interaction);
 
