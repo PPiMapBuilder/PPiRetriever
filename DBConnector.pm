@@ -131,7 +131,7 @@ sub insert() {
 	
 		#--- insertion de l'interacteur A et récupération de son ID ---#
 		eval {
-			$sth_insert_protein->execute( $PPi->getUniprotA(), $PPi->getGeneNameA(), $PPi->getTaxIdA );
+			$sth_insert_protein->execute( $PPi->getUniprotA(), $PPi->getGeneNameA(), $PPi->getTaxIdA() );
 			$this->_commit();
 			$idInteractorA = (keys %{$sth_insert_protein->fetchall_hashref('id')})[0];
 #			print "[INTERACTOR A]\t",$PPi->getUniprotA(), ":", $PPi->getGeneNameA(),"\n";
@@ -147,7 +147,7 @@ sub insert() {
 #		print "[INFO] insertion interacteur B\n";
 
 		eval {
-			$sth_insert_protein->execute( $PPi->getUniprotB(), $PPi->getGeneNameB(), $PPi->getTaxIdB );
+			$sth_insert_protein->execute( $PPi->getUniprotB(), $PPi->getGeneNameB(), $PPi->getTaxIdB() );
 			$this->_commit();
 			($idInteractorB) = (keys %{$sth_insert_protein->fetchall_hashref('id')})[0];
 #			print "[INTERACTOR B]\t",$PPi->getUniprotB(), ":", $PPi->getGeneNameB(),"\n";
@@ -187,12 +187,12 @@ sub insert() {
 			};
 		}
 	
-		#print "----------------------------------------------------------\n\n";
-	  	#print "Interactor A under ID: ", $idInteractorA, "\n";
-		#print "Interactor B under ID: ", $idInteractorB, "\n";
-		#print "Pubmed IDs : @idPublications \n";
-		#print "ExpSystems : @idSysExp \n";
-		#print "----------------------------------------------------------\n\n";
+		print "----------------------------------------------------------\n\n";
+	  	print "Interactor A under ID: ", $idInteractorA, "\n";
+		print "Interactor B under ID: ", $idInteractorB, "\n";
+		print "Pubmed IDs : @idPublications \n";
+		print "ExpSystems : @idSysExp \n";
+		print "----------------------------------------------------------\n\n";
 	
 		#--- Insertion des interaction_data ---#
 		foreach my $pubmed_id (@idPublications) {

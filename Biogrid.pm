@@ -105,12 +105,12 @@ print "[DEBUG : Biogrid] line: ",$. ,"\n" if ($main::verbose);
 print "[DEBUG : Biogrid] origin not defined, next\n" if ($main::verbose);
 			next;
 		} else {
-				print "[DEBUG : Biogrid] originA: $taxA\n\toriginB = $taxB" if ($main::verbose);	
+				print "[DEBUG : Biogrid] originA: $taxA\n\toriginB = $taxB\n" if ($main::verbose);	
 		}
 
 		$orga_queryA = "$hash_orga_tax{$taxA} [$taxA]";
 		$orga_queryB = "$hash_orga_tax{$taxB} [$taxB]";
-print "[DEBUG : Biogrid] orga_queryA: $orga_queryA\n\torga_queryB = $orga_queryB" if ($main::verbose);
+print "[DEBUG : Biogrid] orga_queryA: $orga_queryA\n\torga_queryB = $orga_queryB\n" if ($main::verbose);
 		#my $internet = undef; # Temporary variable to see the number of request to the uniprot.org server
 
 		$intA = $data[7]; # We retrieve the first interactor
