@@ -27,7 +27,7 @@ sub parse {
 
 	my ( $this, $adresse ) = @_;
 
-	$adresse ||=1;
+	$adresse ||= 1;
 
 	my %hash_orga_tax =
 	  ( # Hash to easily retrieve the correspondance between the taxonomy id and the seven reference organisms
@@ -42,31 +42,35 @@ sub parse {
 
 	my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 	my @arrayHomo = ();
-	my %hash_uniprot_id; # A hash to store the uniprot id corresponding to a gene name and an organism
-	      # This avoid to run the same request several times in the uniprot.org server
+	my $hash_uniprot_id = {}; # A hash to store the uniprot id corresponding to a gene name and an organism
+	
+	
+	# This avoid to run the same request several times in the uniprot.org server
 	if (-f "gene_name_to_uniprot_database.txt")   {
 	 	open( gene_name_to_uniprot_file, "gene_name_to_uniprot_database.txt" );
 	 	while (<gene_name_to_uniprot_file>) {      # We initialize the hash with the data contained in the file
 			chomp($_);
 			my @convertion_data = split( /\t/, $_ );
-			%hash_uniprot_id->{ $convertion_data[0] }->{ $convertion_data[2] } =
+			$hash_uniprot_id->{ $convertion_data[0] }->{ $convertion_data[2] } =
 		  	$convertion_data[1];
 		}
 		close(gene_name_to_uniprot_file);
-	 }   
+	}   
 	print "[DEBUG : HOMOLOGENE] list of uniprot/gene has been load\n" if ($main::verbose);		
 	close(gene_name_to_uniprot_file);
+	
+	
 
 	open( data_file, $adresse );    # We open the database file
 	my $database = 'HOMOLOGENE';  # We note the corresponding database we are using
 
 	my $i = 0;
 
-	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" )
-	  ; # During this time, we complete the file which contains the uniprot id for a gene name and an organism
+	# During this time, we complete the file which contains the uniprot id for a gene name and an organism
+	open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
 	while (<data_file>) {
-		print "\n---------------------------------------------------\n" if ($main::verbose);		
 		
+		print "\n---------------------------------------------------\n" if ($main::verbose);		
 		chomp($_);
 
 		next if ( $_ =~ m/^#/ig || $_ =~ /^ID/);
@@ -75,10 +79,8 @@ sub parse {
 		my $intA      = undef;
 		my $uniprot_A = undef;
 		my $origin    = undef;
-
 		my $orga_query;
 		
-
 		my @data = split( /\t/, $_ );    # We split the line into an array
 		#foreach my $plop (@data) {print $plop."\t";}exit;
 		my $hid = $data[0];
@@ -90,27 +92,27 @@ sub parse {
 		next if ($intA eq "-");
 		print "[DEBUG : HOMOLOGENE] gene name A : $intA\n" if ($main::verbose);		
 
-		if ( exists( $hash_uniprot_id{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
-			$uniprot_A = %hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
-			print "[DEBUG : HOMOLOGENE] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);		
-			
+		if ( exists( $hash_uniprot_id->{$intA}->{$orga_query} ) ) { # If the uniprot id has already been retrieved (and is now stored in the file)
+			$uniprot_A = $hash_uniprot_id->{$intA}->{$orga_query}; # we retrieve it from the file
+			print "[DEBUG : HOMOLOGENE] uniprot A : $uniprot_A retrieve from file\n" if ($main::verbose);	
 		}
-		else { print "[HOMOLOGENE] gene name A : $intA\t doesn't exist on the database\n"; next; }
+		else {
+			print "[HOMOLOGENE] gene name A : $intA\t doesn't exist on the database\n";
+			next;
+		}
 
 		push (@arrayHomo, [($uniprot_A, $intA, $hid)]);
-		 
+
 		$i++;
 		print "[HOMOLOGENE] $i : uniprot A : $uniprot_A - gene name A :$intA\t$hid\n" if (! $main::verbose);
 		print "[DEBUG : HOMOLOGENE] Done : $i\n" if ($main::verbose); 
 		
-		if ($#arrayHomo>=49) {
+		if ($#arrayHomo >= 49) {
 			$this->SUPER::sendBDD(\@arrayHomo);
 			close gene_name_to_uniprot_file;
 			open( gene_name_to_uniprot_file, ">>gene_name_to_uniprot_database.txt" );
 			$this->SUPER::error_internet(\%hash_error);
 			%hash_error = ();
-			
-
 		}
 
 
