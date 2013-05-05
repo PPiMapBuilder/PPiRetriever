@@ -45,6 +45,7 @@ sub parse {
 	my %hash_error
 	  ;    #hash of error, retrieve of uniprot or gene name from internet;
 
+	
 	my $hash_uniprot_id={}; # A hash to store the uniprot id corresponding to a gene name and an organism
 	    # This avoid to run the same request several times in the uniprot.org server
 	if (-f "gene_name_to_uniprot_database.txt")   {
@@ -53,7 +54,7 @@ sub parse {
 		{      # We initialize the hash with the data contained in the file
 			chomp($_);
 			my @convertion_data = split( /\t/, $_ );
-			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } = $convertion_data[1];
+			$hash_uniprot_id->{ $convertion_data[0] }->{ $convertion_data[2] } = $convertion_data[1];
 		}
 	}
 	print "[DEBUG : BIND] list of uniprot/gene has been load\n" if ($main::verbose);

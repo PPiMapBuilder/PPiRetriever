@@ -6,6 +6,7 @@ use Carp;        #Additionnal user warnings
 
 use DBpublic;
 use Interaction;
+use Protein;
 use File::Copy;
 use LWP::Simple;
 
@@ -84,11 +85,11 @@ sub parse {
 		my $uniprot_B = undef;
 		my $exp_syst  = undef;
 		my $pubmed    = undef;
-		my $origin    = undef;
 		my $taxA = undef;
 		my $taxB = undef;
 
-		my $orga_query;
+		my $orga_queryA = undef;
+		my $orga_queryB = undef;
 
 		print "\n-------------------------------------\n" if ($main::verbose);
 print "[DEBUG : Biogrid] line: ",$. ,"\n" if ($main::verbose);
@@ -175,8 +176,8 @@ next if (!defined($intB));
 		print "[DEBUG : BIOGRID] pubmed retrieved\n" if ($main::verbose);
 
 		# Construction of the interaction elements
-		$protA = Protein->new($uniprot_A, $intA, $taxA);
-		$protB = Protein->new($uniprot_B, $intB, $taxB);
+		my $protA = Protein->new($uniprot_A, $intA, $taxA);
+		my $protB = Protein->new($uniprot_B, $intB, $taxB);
 		#my @A = ( $uniprot_A, $intA );
 		#my @B = ( $uniprot_B, $intB );
 		my @pubmed  = ($pubmed);
