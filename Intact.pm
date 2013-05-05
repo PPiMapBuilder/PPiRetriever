@@ -95,7 +95,7 @@ sub parse {
 			$taxA = $1 if (defined($hash_orga_tax{$1}));
 		}
 		
-		if ($data[9] =~ /^taxid:(\d+)\(.+\)/) {
+		if ($data[10] =~ /^taxid:(\d+)\(.+\)/) {
 			$taxB = $1 if (defined($hash_orga_tax{$1}));
 		}
 		
@@ -141,7 +141,7 @@ sub parse {
 			print "[DEBUG : INTACT] gene name A : $intA retrieve from internet\n" if ($main::verbose);		
 			
 			$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
-			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
+			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_queryA\n";    # We store it in the file
 			 #$internet .= 'i'; # We indicate that we used an internet connection
 		}
 
@@ -164,10 +164,10 @@ sub parse {
 				print "[DEBUG : INTACT] gene name B : error retrieving gene name from internet\n" if ($main::verbose);		
 				next; 
 			} 
-			print "[DEBUG : INTACT] gene name B : $intA retrieve from internet\n" if ($main::verbose);		
+			print "[DEBUG : INTACT] gene name B : $intB retrieve from internet\n" if ($main::verbose);		
 		
 			$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
-			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
+			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_queryB\n";    # We store it in the file
 		}
 		
 		my @sys_exp = ($this->SUPER::normalizeString($1)) if ($data[6] =~ /\((.+)\)/);
@@ -184,7 +184,7 @@ sub parse {
 		my $protB = Protein->new($uniprot_B, $intB, $taxB);
 
 		# Construction of the interaction object
-		my $interaction = Interaction->new( $protA, $protB, $origin, $database, \@pubmed, \@sys_exp );
+		my $interaction = Interaction->new( $protA, $protB, $database, \@pubmed, \@sys_exp );
 
 		$this->SUPER::addInteraction($interaction);
 		
