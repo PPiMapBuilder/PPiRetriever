@@ -187,12 +187,12 @@ sub insert() {
 			};
 		}
 	
-		#print "----------------------------------------------------------\n\n";
-	  	#print "Interactor A under ID: ", $idInteractorA, "\n";
-		#print "Interactor B under ID: ", $idInteractorB, "\n";
-		#print "Pubmed IDs : @idPublications \n";
-		#print "ExpSystems : @idSysExp \n";
-		#print "----------------------------------------------------------\n\n";
+		print "----------------------------------------------------------\n\n";
+	  	print "Interactor A under ID: ", $idInteractorA, "\n";
+		print "Interactor B under ID: ", $idInteractorB, "\n";
+		print "Pubmed IDs : @idPublications \n";
+		print "ExpSystems : @idSysExp \n";
+		print "----------------------------------------------------------\n\n";
 	
 		#--- Insertion des interaction_data ---#
 		foreach my $pubmed_id (@idPublications) {

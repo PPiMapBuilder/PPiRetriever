@@ -51,8 +51,7 @@ sub parse {
 	 	while (<gene_name_to_uniprot_file>) {      # We initialize the hash with the data contained in the file
 			chomp($_);
 			my @convertion_data = split( /\t/, $_ );
-			$hash_uniprot_id{ $convertion_data[0] }->{ $convertion_data[2] } =
-		  	$convertion_data[1];
+			$hash_uniprot_id{ $convertion_data[1] } = $convertion_data[0];
 		}
 		close(gene_name_to_uniprot_file);
 	 }   
@@ -82,24 +81,34 @@ sub parse {
 		my $uniprot_B = undef;
 		my @exp_syst  = undef;
 		my @pubmed    = undef;
-		my $origin    = undef;
+		my $taxA = undef;
+		my $taxB = undef;
 
-		my $orga_query;
+		my $orga_queryA = undef;
+		my $orga_queryB = undef;
 
 		my @data = split( /\t/, $_ );    # We split the line into an array
 		
 
 		
 		if ($data[9] =~ /^taxid:(\d+)\(.+\)/) {
-			$origin = $1 if (defined($hash_orga_tax{$1}));
+			$taxA = $1 if (defined($hash_orga_tax{$1}));
 		}
 		
-		if ( !$origin )
+		if ($data[10] =~ /^taxid:(\d+)\(.+\)/) {
+			$taxB = $1 if (defined($hash_orga_tax{$1}));
+		}
+		
+		
+		if ( !$taxA or !$taxB )
 		{ # If the origin is null, so if the interaction is not from one of the seven organisms, we do not consider this interaction
+			print "[DEBUG : INTACT] origin not defined, next\n" if ($main::verbose);
 			next;
 		} else {
-			$orga_query = "$hash_orga_tax{$origin} [$origin]";
-			print "[DEBUG : INTACT] Origin : $origin\n" if ($main::verbose);
+			print "[DEBUG : INTACT] originA: $taxA\n\toriginB = $taxB" if ($main::verbose);	
+			$orga_queryA = "$hash_orga_tax{$taxA} [$taxA]";
+			$orga_queryB = "$hash_orga_tax{$taxB} [$taxB]";
+			print "[DEBUG : INTACT] orga_queryA: $orga_queryA\n\torga_queryB = $orga_queryB" if ($main::verbose);
 		}
 
 		$uniprot_A = $1 if ($data[0] =~ /^uniprotkb:(.+)$/);
@@ -114,6 +123,10 @@ sub parse {
 		
 		if ( exists( $hash_uniprot_id{$uniprot_A} ) )
 		{ # If the uniprot id has already been retrieved (and is now stored in the file)
+			if ($hash_uniprot_id{$uniprot_A} eq "undef") {
+				print "[DEBUG : INTACT] gene name A : gene name is unknown for $uniprot_A and $orga_queryA\n" if ($main::verbose);
+				next;
+			}
 			$intA = $hash_uniprot_id{$uniprot_A};    # we retrieve it from the file
 			print "[DEBUG : INTACT] gene name A : $intA retrieve from file\n" if ($main::verbose);
 		}
@@ -121,19 +134,25 @@ sub parse {
 			$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
 			if ($intA eq "1" || $intA eq "0") {
 				$hash_error{$uniprot_A} = $intA;
+				$hash_uniprot_id{$uniprot_A} = "undef";
 				print "[DEBUG : INTACT] gene name A : error gene name uniprot from internet\n" if ($main::verbose);		
 				next; 
 			} 
 			print "[DEBUG : INTACT] gene name A : $intA retrieve from internet\n" if ($main::verbose);		
 			
 			$hash_uniprot_id{$uniprot_A} = $intA;    # We store it in the hash
-			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_query\n";    # We store it in the file
+			print gene_name_to_uniprot_file "$intA\t$uniprot_A\t$orga_queryA\n";    # We store it in the file
 			 #$internet .= 'i'; # We indicate that we used an internet connection
 		}
 
 		# Same principle as above
 		if ( exists( $hash_uniprot_id{$uniprot_B} ) )
 		{ # If the uniprot id has already been retrieved (and is now stored in the file)
+			if ($hash_uniprot_id{$uniprot_B} eq "undef") {
+				print "[DEBUG : INTACT] gene name B : gene name is unknown for $uniprot_B and $orga_queryB\n" if ($main::verbose);
+				next;
+			}
+		
 			$intB = $hash_uniprot_id{$uniprot_B};    # we retrieve it from the file
 			print "[DEBUG : INTACT] gene name B : $intB retrieve from file\n" if ($main::verbose);
 		}
@@ -141,27 +160,31 @@ sub parse {
 			$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
 			if ($intB eq "1" || $intB eq "0") {
 				$hash_error{$uniprot_B} = $intB;
+				$hash_uniprot_id{$uniprot_B} = "undef";
 				print "[DEBUG : INTACT] gene name B : error retrieving gene name from internet\n" if ($main::verbose);		
 				next; 
 			} 
-			print "[DEBUG : INTACT] gene name B : $intA retrieve from internet\n" if ($main::verbose);		
+			print "[DEBUG : INTACT] gene name B : $intB retrieve from internet\n" if ($main::verbose);		
 		
 			$hash_uniprot_id{$uniprot_B} = $intB;    # We store it in the hash
-			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_query\n";    # We store it in the file
+			print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_queryB\n";    # We store it in the file
 		}
 		
-		my @sys_exp = ($this->SUPER::normalizeString($1)) if ($data[11] =~ /\((.+)\)/);
+		my @sys_exp = ($this->SUPER::normalizeString($1)) if ($data[6] =~ /\((.+)\)/);
 		print "[DEBUG : INTACT] sys_exp retrieved\n" if ($main::verbose);
 		
 		@pubmed = ($1) if ($data[8] =~ /pubmed:(\d+)/);
 		print "[DEBUG : INTACT] pubmed retrieved\n" if ($main::verbose);
 		
 		# Construction of the interaction elements
-		my @A = ( $uniprot_A, $intA );
-		my @B = ( $uniprot_B, $intB );
+		#my @A = ( $uniprot_A, $intA );
+		#my @B = ( $uniprot_B, $intB );
+
+		my $protA = Protein->new($uniprot_A, $intA, $taxA);
+		my $protB = Protein->new($uniprot_B, $intB, $taxB);
 
 		# Construction of the interaction object
-		my $interaction = Interaction->new( \@A, \@B, $origin, $database, \@pubmed, \@sys_exp );
+		my $interaction = Interaction->new( $protA, $protB, $database, \@pubmed, \@sys_exp );
 
 		$this->SUPER::addInteraction($interaction);
 		

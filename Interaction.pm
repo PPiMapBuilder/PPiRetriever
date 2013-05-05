@@ -14,7 +14,8 @@ sub new {
 		"pubmed"   => [],
 		"sys_exp"  => []
 	};
-
+	$this->{A} = Protein->new($A->{uniprot_id}, $A->{gene_name}, $A->{orga_tax_id});
+	$this->{B} = Protein->new($B->{uniprot_id}, $B->{gene_name}, $B->{orga_tax_id});
 	@{ $this->{pubmed} }  = @{$pubmed};
 	@{ $this->{sys_exp} } = @{$sys_exp};
 
@@ -70,8 +71,6 @@ sub toString {
 	  . $this->getGeneNameB() . "\n"
   	  . " - TaxID: "
 	  . $this->getTaxIdB() . "\n"
-	  . "Organism : "
-	  . $this->{organism} . "\n"
 	  . "Database : "
 	  . $this->{database}
 	  . "\n";

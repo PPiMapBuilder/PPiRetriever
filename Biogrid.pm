@@ -79,6 +79,10 @@ sub parse {
 		}
 		last if ($i == $stop);
 
+		my @data = split( /\t/, $_ ); # We split the line into an array
+		
+		next if ($data[12] ne "physical");
+		
 		my $intA      = undef;
 		my $uniprot_A = undef;
 		my $intB      = undef;
@@ -94,9 +98,6 @@ sub parse {
 		print "\n-------------------------------------\n" if ($main::verbose);
 print "[DEBUG : Biogrid] line: ",$. ,"\n" if ($main::verbose);
 
-
-		my @data = split( /\t/, $_ ); # We split the line into an array
-
 		$taxA = $data[15] if (defined($hash_orga_tax{$data[15]}));
 		$taxB = $data[16] if (defined($hash_orga_tax{$data[16]}));
 
@@ -105,12 +106,12 @@ print "[DEBUG : Biogrid] line: ",$. ,"\n" if ($main::verbose);
 print "[DEBUG : Biogrid] origin not defined, next\n" if ($main::verbose);
 			next;
 		} else {
-				print "[DEBUG : Biogrid] originA: $taxA\n\toriginB = $taxB" if ($main::verbose);	
+				print "[DEBUG : Biogrid] originA: $taxA\n\toriginB = $taxB\n" if ($main::verbose);	
 		}
 
 		$orga_queryA = "$hash_orga_tax{$taxA} [$taxA]";
 		$orga_queryB = "$hash_orga_tax{$taxB} [$taxB]";
-print "[DEBUG : Biogrid] orga_queryA: $orga_queryA\n\torga_queryB = $orga_queryB" if ($main::verbose);
+print "[DEBUG : Biogrid] orga_queryA: $orga_queryA\n\torga_queryB = $orga_queryB\n" if ($main::verbose);
 		#my $internet = undef; # Temporary variable to see the number of request to the uniprot.org server
 
 		$intA = $data[7]; # We retrieve the first interactor
