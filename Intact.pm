@@ -105,10 +105,10 @@ sub parse {
 			print "[DEBUG : INTACT] origin not defined, next\n" if ($main::verbose);
 			next;
 		} else {
-			print "[DEBUG : INTACT] originA: $taxA\n\toriginB = $taxB" if ($main::verbose);	
+			print "[DEBUG : INTACT] originA: $taxA\n\toriginB = $taxB\n" if ($main::verbose);	
 			$orga_queryA = "$hash_orga_tax{$taxA} [$taxA]";
 			$orga_queryB = "$hash_orga_tax{$taxB} [$taxB]";
-			print "[DEBUG : INTACT] orga_queryA: $orga_queryA\n\torga_queryB = $orga_queryB" if ($main::verbose);
+			print "[DEBUG : INTACT] orga_queryA: $orga_queryA\n\torga_queryB = $orga_queryB\n" if ($main::verbose);
 		}
 
 		$uniprot_A = $1 if ($data[0] =~ /^uniprotkb:(.+)$/);
