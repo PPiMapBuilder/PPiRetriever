@@ -79,6 +79,10 @@ sub parse {
 		}
 		last if ($i == $stop);
 
+		my @data = split( /\t/, $_ ); # We split the line into an array
+		
+		next if ($data[12] ne "physical");
+		
 		my $intA      = undef;
 		my $uniprot_A = undef;
 		my $intB      = undef;
@@ -93,9 +97,6 @@ sub parse {
 
 		print "\n-------------------------------------\n" if ($main::verbose);
 print "[DEBUG : Biogrid] line: ",$. ,"\n" if ($main::verbose);
-
-
-		my @data = split( /\t/, $_ ); # We split the line into an array
 
 		$taxA = $data[15] if (defined($hash_orga_tax{$data[15]}));
 		$taxB = $data[16] if (defined($hash_orga_tax{$data[16]}));
