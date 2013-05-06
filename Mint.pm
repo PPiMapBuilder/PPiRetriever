@@ -177,7 +177,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 			}		
 		}
-		elsif ($data[1] =~ /uniprotkb/) {
+		elsif ($data[0] =~ /uniprotkb/) {
 			my @data3 = split (/;/, $data[1]);
 			foreach my $plop1 (@data3) {
 				if ($plop1 =~ /uniprotkb:(.+)$/) {
