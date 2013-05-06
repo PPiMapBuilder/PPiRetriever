@@ -180,12 +180,15 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 		elsif ($data[1] =~ /uniprotkb/) {
 			my @data3 = split (/;/, $data[1]);
 			foreach my $plop1 (@data3) {
-				if ($plop1 =~ /uniprot:(.+)$/) {
+				if ($plop1 =~ /uniprotkb:(.+)$/) {
 					$uniprot_A = $1;
 					last;
 				}
 			}
-			next if (!$uniprot_A);
+			if (!$uniprot_A) {
+				print "[DEBUG : MINT] couldn't retrieve uniprotA\n";
+				next;
+			}
 			print "[DEBUG : MINT] uniprot A : $uniprot_A\n" if ($main::verbose);
 			
 			if ( exists( $hash_gene_name{$uniprot_A} ) )
@@ -269,7 +272,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 		elsif ($data[1] =~ /uniprotkb/) {
 			my @data2 = split (/;/, $data[1]);
 			foreach my $plop (@data) {
-				if ($plop =~ /uniprot:(.+)$/) {
+				if ($plop =~ /uniprotkb:(.+)$/) {
 					$uniprot_B = $1;
 					last;
 				}
