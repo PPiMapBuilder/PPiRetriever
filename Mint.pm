@@ -177,15 +177,21 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 			}		
 		}
-		elsif ($data[0] =~ /;?uniprotkb:(.+?)$/) {
-			$uniprot_A = $1;
+		elsif ($data[1] =~ /uniprotkb/) {
+			my @data3 = split (/;/, $data[1]);
+			foreach my $plop1 (@data3) {
+				if ($plop1 =~ /uniprot:(.+)$/) {
+					$uniprot_A = $1;
+					last;
+				}
+			}
 			next if (!$uniprot_A);
 			print "[DEBUG : MINT] uniprot A : $uniprot_A\n" if ($main::verbose);
 			
 			if ( exists( $hash_gene_name{$uniprot_A} ) )
 			{ # If the uniprot id has already been retrieved (and is now stored in the file)
 				$intA = $hash_gene_name{$uniprot_A};    # we retrieve it from the file
-				print "[DEBUG : DIP] gene name A : $intA retrieve from file\n" if ($main::verbose);
+				print "[DEBUG : MINT] gene name A : $intA retrieve from file\n" if ($main::verbose);
 			}
 			else {                    # If we need to retrieve it from the web
 				next if (length($uniprot_A) < 2);
@@ -260,15 +266,21 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 			}		
 		}
-		elsif ($data[1] =~ /;?uniprotkb:(.+?)$/) {
-			$uniprot_B = $1;
+		elsif ($data[1] =~ /uniprotkb/) {
+			my @data2 = split (/;/, $data[1]);
+			foreach my $plop (@data) {
+				if ($plop =~ /uniprot:(.+)$/) {
+					$uniprot_B = $1;
+					last;
+				}
+			}
 			next if (!$uniprot_B);
 			print "[DEBUG : MINT] uniprot B : $uniprot_B\n" if ($main::verbose);
 			
 			if ( exists( $hash_gene_name{$uniprot_B} ) )
 			{ # If the uniprot id has already been retrieved (and is now stored in the file)
 				$intB = $hash_gene_name{$uniprot_B};    # we retrieve it from the file
-				print "[DEBUG : DIP] gene name B : $intB retrieve from file\n" if ($main::verbose);
+				print "[DEBUG : MINT] gene name B : $intB retrieve from file\n" if ($main::verbose);
 			}
 			else {                    # If we need to retrieve it from the web
 				next if (length($uniprot_B) < 2);
