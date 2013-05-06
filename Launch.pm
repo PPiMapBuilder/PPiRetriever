@@ -90,10 +90,10 @@ sub execute {
 	elsif ( $db eq "homologene" ) {
 		#print Dumper $this->{DBconnector};
 		$database = HomoloGene->new( $this->{DBconnector} );
-		my ( $path, $code ) = $database->dowload( $this->{DBconnector} );
-		if ($code == 1 or $code == -1) {
-			$database->parse($path);
-		}
+		#my ( $path, $code ) = $database->download( $this->{DBconnector} );
+		#if ($code == 1 or $code == -1) {
+			$database->parse("homologene.data.txt");
+		#}
 	}
 	else {
 		$this->help();
