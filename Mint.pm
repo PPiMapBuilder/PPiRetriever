@@ -161,6 +161,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 				else {                    # If we need to retrieve it from the web
 					my $loc = $intA;
+					next if (length($uniprot_A) < 2);
 					$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
 					if ($intA eq "1" || $intA eq "0") {
 						$hash_error{$uniprot_A} = $intA;
@@ -187,6 +188,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				print "[DEBUG : DIP] gene name A : $intA retrieve from file\n" if ($main::verbose);
 			}
 			else {                    # If we need to retrieve it from the web
+				next if (length($uniprot_A) < 2);
 				$intA =$this->SUPER::uniprot_id_to_gene_name( $uniprot_A );
 				if ($intA eq "1" || $intA eq "0") {
 					$hash_error{$uniprot_A} = $intA;
@@ -242,6 +244,7 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 				}
 				else {                    # If we need to retrieve it from the web
 					my $loc = $intB;
+					next if (length($uniprot_B) < 2);
 					$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
 					if ($intB eq "1" || $intB eq "0") {
 						$hash_error{$uniprot_B} = $intB;
@@ -264,10 +267,11 @@ my %hash_error; #hash of error, retrieve of uniprot or gene name from internet;
 			
 			if ( exists( $hash_gene_name{$uniprot_B} ) )
 			{ # If the uniprot id has already been retrieved (and is now stored in the file)
-				$intA = $hash_gene_name{$uniprot_A};    # we retrieve it from the file
+				$intB = $hash_gene_name{$uniprot_B};    # we retrieve it from the file
 				print "[DEBUG : DIP] gene name B : $intB retrieve from file\n" if ($main::verbose);
 			}
 			else {                    # If we need to retrieve it from the web
+				next if (length($uniprot_B) < 2);
 				$intB =$this->SUPER::uniprot_id_to_gene_name( $uniprot_B );
 				if ($intB eq "1" || $intB eq "0") {
 					$hash_error{$uniprot_B} = $intB;
