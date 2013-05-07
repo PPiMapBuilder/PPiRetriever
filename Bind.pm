@@ -9,6 +9,8 @@ use LWP::UserAgent;
 use LWP::Simple;
 use File::Copy;
 
+use Protein;
+
 $SIG{INT} = \&catch_ctrlc;
 our @ISA = ("DBpublic");
 
@@ -84,7 +86,8 @@ sub parse {
 
 	my $good = 1;
 
-	my $orga_query;
+	my $orga_queryA;
+	my $orga_queryB;
 
 	open( data_file, $adresse );    # We open the database file
 	while (<data_file>) {
@@ -95,8 +98,8 @@ sub parse {
 				$good    = 0 if ( $#pubmed == -1 || $#sys_exp == -1 );
 
 				if ( $good == 1 ) {
-					$protA = ($uniprot_A, $intA, $orgaA);
-					$protB ($uniprot_B, $intB, $orgaB);
+					my $protA = Protein->new ($uniprot_A, $intA, $orgaA);
+					my $protB = Protein->new ($uniprot_B, $intB, $orgaB);
 				
 					#@A = ( $uniprot_A, $intA );
 					#@B = ( $uniprot_B, $intB );
@@ -236,7 +239,7 @@ sub parse {
 							next;
 						}
 						else {
-							$hash_uniprot_id->{$intB}->{$orga_query} = $uniprot_B; # We store it in the hash
+							$hash_uniprot_id->{$intB}->{$orga_queryB} = $uniprot_B; # We store it in the hash
 							print gene_name_to_uniprot_file "$intB\t$uniprot_B\t$orga_queryB\n"; # We store it in the file
 						}
 
