@@ -1,7 +1,7 @@
 ![](https://fr.gravatar.com/userimage/46678059/7c7f65f2ea5b01dfc46adac45048df6b.jpg?size=40) PPiRetriever
 ============
 
-Server-side software filling the PPiMapBuilder database
+Server-side software filling the [PPiMapBuilderForCy2.8](https://github.com/PPiMapBuilder/PPiMapBuilderForCy2.8) database
 
 Source databases:
 * BIND (Extracted from [BOND](http://bond.unleashedinformatics.com/))
